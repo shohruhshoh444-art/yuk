@@ -38,7 +38,7 @@ class SiteController extends Controller
                             'blog',
                             'logout',
                             'orders',
-                            'order', 
+                            'order',
                             'catagory',
                             'category',
                             'product',
@@ -172,6 +172,13 @@ class SiteController extends Controller
         $newProd = $id ? \common\models\Product::findOne($id) : new \common\models\Product();
 
         if ($newProd->load(Yii::$app->request->post())) {
+
+            if ($newProd->isNewRecord) {
+                $newProd->created_at = time();
+            }
+            $newProd->updated_at = time();
+            
+
             $newProd->imageFile = \yii\web\UploadedFile::getInstance($newProd, 'imageFile');
 
             if ($newProd->validate()) {
@@ -211,6 +218,7 @@ class SiteController extends Controller
     }
 
 
+
     public function actionOrder($del = null)
     {
         if ($del !== null) {
@@ -240,7 +248,7 @@ class SiteController extends Controller
     {
         $model = \common\models\Order::findOne($id);
         if ($model) {
-            $model->status = (int)$status; 
+            $model->status = (int)$status;
 
             if ($model->save(false)) {
                 Yii::$app->session->setFlash('success', "Status o'zgardi!");

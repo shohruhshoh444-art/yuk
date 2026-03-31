@@ -30,15 +30,15 @@ class Category extends \yii\db\ActiveRecord
     /**
      * {@inheritdoc}
      */
-public function rules()
-{
-    return [
-        [['parent_id', 'status', 'sort'], 'integer'],
-        [['name_uz', 'slug'], 'required'],
-        [['name_uz', 'slug'], 'string', 'max' => 255],
-        [['slug'], 'unique'],
-    ];
-}
+    public function rules()
+    {
+        return [
+            [['parent_id', 'status', 'sort'], 'integer'],
+            [['name_uz', 'slug'], 'required'],
+            [['name_uz', 'slug'], 'string', 'max' => 255],
+            [['slug'], 'unique'],
+        ];
+    }
     /**
      * {@inheritdoc}
      */
@@ -54,5 +54,15 @@ public function rules()
             'sort' => 'Sort',
         ];
     }
-
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            
+            if ($this->hasAttribute('name')) {
+                $this->name = $this->name_uz;
+            }
+            return true;
+        }
+        return false;
+    }
 }

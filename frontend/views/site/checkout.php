@@ -61,7 +61,7 @@ use yii\helpers\Html;
                         <div class="checkout-summary">
                             <h1>Cart Total</h1>
                             <?php foreach ($products as $item): ?>
-                                <p><?= Html::encode($item['model']->name) ?> (x<?= $item['qty'] ?>)
+                                <p><?= Html::encode($item['model']->title) ?> (x<?= $item['qty'] ?>)
                                     <span>$<?= number_format($item['model']->price * $item['qty'], 0) ?></span>
                                 </p>
                             <?php endforeach; ?>

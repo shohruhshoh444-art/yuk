@@ -14,7 +14,7 @@ use yii\helpers\Url;
                             <div class="col-lg-4 col-md-6 mb-4">
                                 <div class="product-item shadow-sm border-0 bg-white rounded overflow-hidden">
                                     <div class="product-title p-2 text-center" style="background: #ff7466;">
-                                        <a href="#" class="text-white font-weight-bold"><?= Html::encode($product->name) ?></a>
+                                        <a href="#" class="text-white font-weight-bold"><?= Html::encode($product->title) ?></a>
                                     </div>
                                     <div class="product-image d-flex align-items-center justify-content-center" style="height: 250px;">
                                         <img src="<?= Url::to('@web/' . ($product->image ?? 'img/product-1.jpg')) ?>" style="max-height: 90%; max-width: 90%;">

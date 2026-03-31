@@ -3,6 +3,7 @@
 namespace common\models;
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "product".
@@ -27,7 +28,14 @@ use Yii;
 class Product extends \yii\db\ActiveRecord
 {
 
-  public $imageFile; 
+    public $imageFile;
+
+    public function behaviors()
+    {
+        return [
+            TimestampBehavior::class,
+        ];
+    }
 
     /**
      * {@inheritdoc}
@@ -45,13 +53,13 @@ class Product extends \yii\db\ActiveRecord
         return [
             [['discount_price', 'description', 'specifications', 'created_at'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 1],
-            [['category_id', 'name', 'price'], 'required'],
+            [['category_id', 'title', 'price'], 'required'],
             [['category_id', 'status', 'created_at'], 'integer'],
             [['price', 'discount_price'], 'number'],
             [['description'], 'string'],
-             [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg', 'maxSize' => 1024 * 1024 * 2],
+            [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg', 'maxSize' => 1024 * 1024 * 2],
             [['specifications'], 'safe'],
-            [['name'], 'string', 'max' => 255],
+            [['title'], 'string', 'max' => 255],
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => Category::class, 'targetAttribute' => ['category_id' => 'id']],
         ];
     }
@@ -64,7 +72,7 @@ class Product extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'category_id' => 'Category ID',
-            'name' => 'Name',
+            'title' => 'Name',
             'price' => 'Price',
             'discount_price' => 'Discount Price',
             'status' => 'Status',
@@ -133,5 +141,4 @@ class Product extends \yii\db\ActiveRecord
     {
         return $this->hasMany(ProductRelation::class, ['related_id' => 'id']);
     }
-
 }

@@ -51,7 +51,7 @@ use yii\helpers\Html;
                                                         <img src="<?= Url::to('@web/' . ($item['model']->image ?? 'img/product-1.jpg')) ?>" alt="Image">
                                                     </a>
                                                     <p>
-                                                        <?= Html::encode($item['model'] instanceof \common\models\Blog ? $item['model']->title : $item['model']->name) ?>
+                                                        <?= Html::encode($item['model'] instanceof \common\models\Blog ? $item['model']->title : $item['model']->title) ?>
                                                     </p>
                                                 </div>
                                             </td>

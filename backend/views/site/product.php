@@ -34,7 +34,7 @@ $this->title = 'Mahsulotlar Boshqaruvi';
                                 <?php foreach ($products as $prod): ?>
                                     <tr>
                                         <td>
-                                            <strong><?= Html::encode($prod->name) ?></strong><br>
+                                            <strong><?= Html::encode($prod->title) ?></strong><br>
                                             <small class="text-muted">ID: <?= $prod->id ?></small>
                                         </td>
                                         <td><?= $prod->category ? $prod->category->name_uz : 'Kategoriyasiz' ?></td>
@@ -78,7 +78,7 @@ $this->title = 'Mahsulotlar Boshqaruvi';
                         ['prompt' => 'Kategoriyani tanlang...']
                     ) ?>
 
-                    <?= $form->field($newProd, 'name')->textInput(['placeholder' => 'Mahsulot nomi...']) ?>
+                    <?= $form->field($newProd, 'title')->textInput(['placeholder' => 'Mahsulot nomi...']) ?>
                     <?= $form->field($newProd, 'imageFile')->fileInput() ?>
 
                     <?php if (!$newProd->isNewRecord && $newProd->image): ?>
