@@ -222,152 +222,86 @@ $this->title = 'e STORE';
     </div>
 </div>
 <!-- Call to Action End -->
+<?php
+use yii\helpers\Url;
 
-<!-- Recent Product Start -->
-<div class="recent-product product">
-    <div class="container-fluid">
-        <div class="section-header mb-4">
-            <h1 style="border-left: 5px solid #ff7466; padding-left: 15px;">Recent Products</h1>
-        </div>
-        <div class="row">
-            <?php foreach ($products as $product): ?>
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="product-item shadow-sm border-0" style="background: #fff; transition: 0.3s; border-radius: 10px; overflow: hidden;">
-                        <div class="product-title p-3 text-center" style="background: #222;">
-                            <a href="#" class="text-white font-weight-bold" style="font-size: 14px; text-transform: uppercase;">
-                                <?= \yii\helpers\Html::encode($product->title) ?>
-                            </a>
-                            <div class="ratting mt-1">
-                                <?php for ($i = 0; $i < 5; $i++): ?> <i class="fa fa-star text-warning" style="font-size: 11px;"></i> <?php endfor; ?>
-                            </div>
-                        </div>
-                        <div class="product-image position-relative" style="height: 280px; display: flex; align-items: center; justify-content: center; background: #fff;">
-                            <img src="<?= Yii::getAlias('@web/') . $product->image ?>" alt="Product" style="max-height: 90%; max-width: 90%; object-fit: contain;">
-                            <div class="product-action" style="position: absolute; bottom: 15px; width: 100%; text-align: center;">
-                                <a href="<?= \yii\helpers\Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-outline-dark mx-1 shadow-sm bg-white">
-                                    <i class="fa fa-shopping-cart"></i>
-                                </a>
-                                <a href="<?= \yii\helpers\Url::to(['site/add-wishlist', 'id' => $product->id]) ?>" class="btn btn-outline-danger mx-1 shadow-sm bg-white">
-                                    <i class="fa fa-heart"></i>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="product-price p-3 text-center" style="background: #f8f8f8;">
-                            <h3 class="text-dark mb-2" style="font-weight: 800;">$<?= number_format($product->price, 0) ?></h3>
-                            <a class="btn btn-block py-2" href="<?= \yii\helpers\Url::to(['site/add-cart', 'id' => $product->id]) ?>"
-                                style="background: #ff7466; color: #fff; border-radius: 5px; font-weight: bold; font-size: 14px;">
-                                <i class="fa fa-shopping-bag mr-2"></i> BUY NOW
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+?>
 
-    <!-- Recent Product End -->
-
-
-<!-- Newsletter Start -->
-<div class="newsletter">
+<div class="product-view py-5" style="background: #f4f6f9;">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-6">
-                <h1>Subscribe Our Newsletter</h1>
-            </div>
-            <div class="col-md-6">
-                <div class="form">
-                    <input type="email" value="Your email here">
-                    <button>Submit</button>
+            <div class="col-lg-9 col-md-8">
+                <div class="section-header mb-4">
+                    <h2 style="font-weight: 800; color: #333; border-left: 5px solid #ff7466; padding-left: 15px;">
+                        <?= $active_category ? "Kategoriya mahsulotlari" : "Recent Products" ?>
+                    </h2>
+                </div>
+
+                <div class="row">
+                    <?php foreach ($products as $product): ?>
+                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
+                            <div class="product-card shadow-sm border-0" style="background: #fff; border-radius: 8px; overflow: hidden; transition: 0.3s; position: relative;">
+                               
+                                <div class="p-2 text-center" style="background: #ff7466;">
+                                    <a href="#" class="text-white font-weight-bold" style="font-size: 13px; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        <?= Html::encode($product->title) ?>
+                                    </a>
+                                </div>
+
+                                <div class="product-img-box" style="height: 220px; display: flex; align-items: center; justify-content: center; background: #fff; padding: 15px; position: relative;">
+                                    <?php 
+                                        $imagePath = $product->image ? Yii::getAlias('@web/') . $product->image : Yii::getAlias('@web/images/no-image.png');
+                                    ?>
+                                    <img src="<?= $imagePath ?>" alt="Product" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                    
+                                    <div class="hover-buttons" style="position: absolute; display: flex; gap: 5px;">
+                                        <a href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-light shadow-sm"><i class="fa fa-shopping-cart text-danger"></i></a>
+                                        <a href="<?= Url::to(['site/wishlist', 'id' => $product->id]) ?>" class="btn btn-sm btn-light shadow-sm"><i class="fa fa-heart text-danger"></i></a>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 d-flex align-items-center justify-content-between" style="background: #222; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+                                    <span class="text-white" style="font-size: 20px; font-weight: 700;">$<?= number_format($product->price, 0, '.', ',') ?></span>
+                                    <a href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-danger px-3 py-1" style="background: #ff7466; border: none; font-size: 12px; font-weight: bold;">
+                                        <i class="fa fa-shopping-cart mr-1"></i> Buy Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-<!-- Newsletter End -->
 
-<!-- Recent Product Start -->
-<div class="recent-product product">
-    <div class="container-fluid">
-        <div class="section-header">
-            <h1>Recent Product</h1>
-        </div>
-        <div class="row align-items-center product-slider product-slider-4">
-
-        </div>
-    </div>
-</div>
-<!-- Recent Product End -->
-
-<!-- Review Start -->
-<div class="review">
-    <div class="container-fluid">
-        <div class="row align-items-center review-slider normal-slider">
-            <div class="col-md-6">
-                <div class="review-slider-item">
-                    <div class="review-img">
-                        <img src="img/review-1.jpg" alt="Image">
+            <div class="col-lg-3 col-md-4">
+                <div class="card border-0 shadow-sm" style="border-radius: 8px;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0" style="font-weight: 700; color: #333;">Category</h5>
                     </div>
-                    <div class="review-text">
-                        <h2>Customer Name</h2>
-                        <h3>Profession</h3>
-                        <div class="ratting">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                        </div>
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur vitae nunc eget leo finibus luctus et vitae lorem
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="review-slider-item">
-                    <div class="review-img">
-                        <img src="img/review-2.jpg" alt="Image">
-                    </div>
-                    <div class="review-text">
-                        <h2>Customer Name</h2>
-                        <h3>Profession</h3>
-                        <div class="ratting">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                        </div>
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur vitae nunc eget leo finibus luctus et vitae lorem
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="review-slider-item">
-                    <div class="review-img">
-                        <img src="img/review-3.jpg" alt="Image">
-                    </div>
-                    <div class="review-text">
-                        <h2>Customer Name</h2>
-                        <h3>Profession</h3>
-                        <div class="ratting">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                        </div>
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur vitae nunc eget leo finibus luctus et vitae lorem
-                        </p>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            <a href="<?= Url::to(['site/index']) ?>" class="list-group-item list-group-item-action <?= !$active_category ? 'active-cat' : '' ?>">
+                                <i class="fa fa-chevron-right mr-2" style="font-size: 10px;"></i> Barcha mahsulotlar
+                            </a>
+                            <?php foreach ($categories as $cat): ?>
+                                <a href="<?= Url::to(['site/index', 'category_id' => $cat->id]) ?>" 
+                                   class="list-group-item list-group-item-action <?= $active_category == $cat->id ? 'active-cat' : '' ?>">
+                                    <i class="fa fa-chevron-right mr-2" style="font-size: 10px;"></i> <?= Html::encode($cat->name_uz) ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- Review End -->
-<?php endforeach; ?>
+
+<style>
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    .active-cat { background-color: #ff7466 !important; color: #fff !important; border: none; }
+    .product-card .hover-buttons { opacity: 0; transition: 0.3s; }
+    .product-card:hover .hover-buttons { opacity: 1; }
+    .list-group-item { border: none; padding: 12px 20px; font-size: 14px; font-weight: 500; color: #555; }
+    .list-group-item:hover { background: #f8f9fa; color: #ff7466; }
+</style>
+

@@ -30,7 +30,7 @@ $this->title = 'Sevimlilar (Wishlist)';
                                     <td class="text-left">
                                         <div class="d-flex align-items-center">
                                             <img src="<?= Url::to('@web/' . $product->image) ?>" width="60" class="mr-3 border">
-                                            <span><?= Html::encode($product->name) ?></span>
+                                            <span><?= Html::encode($product->title) ?></span>
                                         </div>
                                     </td>
                                     <td><strong>$<?= number_format($product->price, 0) ?></strong></td>
