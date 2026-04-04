@@ -17,6 +17,7 @@ class m260323_092936_create_product_table extends Migration
             'category_id' => $this->integer()->notNull(),
             'title' => $this->json()->notNull(),
             'description' => $this->json(),
+            'slug' => $this->string()->unique()->notNull(),
             'price' => $this->decimal(15, 2)->notNull(),
             'discount_price' => $this->decimal(15, 2),
             'stock' => $this->integer()->defaultValue(0),

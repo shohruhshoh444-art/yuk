@@ -3,6 +3,7 @@
 /** @var yii\web\View $this */
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 $this->title = 'e STORE';
 ?>
@@ -19,41 +20,11 @@ $this->title = 'e STORE';
 <div class="header">
 
     <div class="row">
-        <div class="col-md-3">
-            <nav class="navbar bg-light">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-home"></i>Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-shopping-bag"></i>Best Selling</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-plus-square"></i>New Arrivals</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-female"></i>Fashion & Beauty</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-child"></i>Kids & Babies Clothes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-tshirt"></i>Men & Women Clothes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-mobile-alt"></i>Gadgets & Accessories</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fa fa-microchip"></i>Electronics & Accessories</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="header-slider normal-slider">
                 <?php foreach ($blogs as $blog): ?>
                     <div class="header-slider-item">
-                        <img src="<?= Yii::getAlias('@web/') . $blog->image ?>" alt="<?= Html::encode($blog->title) ?>" style="object-fit: cover; height: 400px; width: 100%;" />
+                        <img src="<?= Url::to('@web/' . ($blog->image ?? 'img/category-5.jpg')) ?>" alt="<?= Html::encode($blog->title) ?>" style="object-fit: cover; height: 400px; width: 100%;" />
 
                         <div class="header-slider-caption">
                             <p><?= Html::encode($blog->title) ?></p>
@@ -74,22 +45,7 @@ $this->title = 'e STORE';
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="header-img">
-                <div class="img-item">
-                    <img src="img/category-1.jpg" />
-                    <a class="img-text" href="">
-                        <p>Some text goes here that describes the image</p>
-                    </a>
-                </div>
-                <div class="img-item">
-                    <img src="img/category-2.jpg" />
-                    <a class="img-text" href="">
-                        <p>Some text goes here that describes the image</p>
-                    </a>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 </div>
@@ -197,7 +153,7 @@ $this->title = 'e STORE';
             </div>
             <div class="col-md-3">
                 <div class="category-item ch-400">
-                    <img src="img/category-8.jpg" />
+                    <img src="img/category-5.jpg" />
                     <a class="category-name" href="">
                         <p>Some text goes here that describes the image</p>
                     </a>
@@ -222,10 +178,7 @@ $this->title = 'e STORE';
     </div>
 </div>
 <!-- Call to Action End -->
-<?php
-use yii\helpers\Url;
 
-?>
 
 <div class="product-view py-5" style="background: #f4f6f9;">
     <div class="container-fluid">
@@ -241,28 +194,41 @@ use yii\helpers\Url;
                     <?php foreach ($products as $product): ?>
                         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
                             <div class="product-card shadow-sm border-0" style="background: #fff; border-radius: 8px; overflow: hidden; transition: 0.3s; position: relative;">
-                               
+
                                 <div class="p-2 text-center" style="background: #ff7466;">
-                                    <a href="#" class="text-white font-weight-bold" style="font-size: 13px; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <a href="<?= Url::to(['site/view', 'id' => $product->id]) ?>" class="text-white font-weight-bold" style="font-size: 13px; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                         <?= Html::encode($product->title) ?>
                                     </a>
                                 </div>
 
                                 <div class="product-img-box" style="height: 220px; display: flex; align-items: center; justify-content: center; background: #fff; padding: 15px; position: relative;">
-                                    <?php 
-                                        $imagePath = $product->image ? Yii::getAlias('@web/') . $product->image : Yii::getAlias('@web/images/no-image.png');
+                                    <?php
+                                    $imagePath = Yii::getAlias('@web/img/product-5.jpg');
+
+                                    if ($product->image && file_exists(Yii::getAlias('@webroot/') . $product->image)) {
+                                        $imagePath = Yii::getAlias('@web/') . $product->image;
+                                    }
                                     ?>
+
                                     <img src="<?= $imagePath ?>" alt="Product" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-                                    
+
+
                                     <div class="hover-buttons" style="position: absolute; display: flex; gap: 5px;">
-                                        <a href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-light shadow-sm"><i class="fa fa-shopping-cart text-danger"></i></a>
-                                        <a href="<?= Url::to(['site/wishlist', 'id' => $product->id]) ?>" class="btn btn-sm btn-light shadow-sm"><i class="fa fa-heart text-danger"></i></a>
+                                        <a href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-light shadow-sm">
+                                            <i class="fa fa-shopping-cart text-danger"></i>
+                                        </a>
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-sm btn-light shadow-sm wishlist-btn"
+                                            data-id="<?= $product->id ?>">
+                                            <i class="fa fa-heart text-danger"></i>
+                                        </a>
                                     </div>
+
                                 </div>
 
                                 <div class="p-3 d-flex align-items-center justify-content-between" style="background: #222; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
                                     <span class="text-white" style="font-size: 20px; font-weight: 700;">$<?= number_format($product->price, 0, '.', ',') ?></span>
-                                    <a href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-danger px-3 py-1" style="background: #ff7466; border: none; font-size: 12px; font-weight: bold;">
+                                    <a href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-danger px-3 py-1" style="background: #6d0b02; border: none; font-size: 12px; font-weight: bold;">
                                         <i class="fa fa-shopping-cart mr-1"></i> Buy Now
                                     </a>
                                 </div>
@@ -283,8 +249,8 @@ use yii\helpers\Url;
                                 <i class="fa fa-chevron-right mr-2" style="font-size: 10px;"></i> Barcha mahsulotlar
                             </a>
                             <?php foreach ($categories as $cat): ?>
-                                <a href="<?= Url::to(['site/index', 'category_id' => $cat->id]) ?>" 
-                                   class="list-group-item list-group-item-action <?= $active_category == $cat->id ? 'active-cat' : '' ?>">
+                                <a href="<?= Url::to(['site/index', 'category_id' => $cat->id]) ?>"
+                                    class="list-group-item list-group-item-action <?= $active_category == $cat->id ? 'active-cat' : '' ?>">
                                     <i class="fa fa-chevron-right mr-2" style="font-size: 10px;"></i> <?= Html::encode($cat->name_uz) ?>
                                 </a>
                             <?php endforeach; ?>
@@ -297,11 +263,65 @@ use yii\helpers\Url;
 </div>
 
 <style>
-    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-    .active-cat { background-color: #ff7466 !important; color: #fff !important; border: none; }
-    .product-card .hover-buttons { opacity: 0; transition: 0.3s; }
-    .product-card:hover .hover-buttons { opacity: 1; }
-    .list-group-item { border: none; padding: 12px 20px; font-size: 14px; font-weight: 500; color: #555; }
-    .list-group-item:hover { background: #f8f9fa; color: #ff7466; }
-</style>
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
 
+    .active-cat {
+        background-color: #ff7466 !important;
+        color: #fff !important;
+        border: none;
+    }
+
+    .product-card .hover-buttons {
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .product-card:hover .hover-buttons {
+        opacity: 1;
+    }
+
+    .list-group-item {
+        border: none;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #555;
+    }
+
+    .list-group-item:hover {
+        background: #f8f9fa;
+        color: #ff7466;
+    }
+</style>
+<?php
+$wishlistUrl = \yii\helpers\Url::to(['site/wishlist']);
+$this->registerJs(
+    <<<JS
+    $('.wishlist-btn').on('click', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var productId = btn.data('id');
+
+        $.ajax({
+            url: '$wishlistUrl',
+            type: 'GET',
+            data: {id: productId},
+            success: function(res) {
+                if(res.status === 'success') {
+                    btn.find('i').removeClass('fa-heart-o').addClass('fa-heart');
+                    alert('Mahsulot saralanganga qo\'shildi!');
+                } else {
+                    alert(res.message || 'Xatolik yuz berdi');
+                }
+            },
+            error: function() {
+                alert('Server bilan aloqa yo\'q');
+            }
+        });
+    });
+JS
+);
+?>

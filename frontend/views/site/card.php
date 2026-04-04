@@ -46,13 +46,21 @@ use yii\helpers\Html;
                                     <?php foreach ($products as $item): ?>
                                         <tr>
                                             <td>
-                                                <div class="img">
-                                                    <a href="#">
-                                                        <img src="<?= Url::to('@web/' . ($item['model']->image ?? 'img/product-1.jpg')) ?>" alt="Image">
-                                                    </a>
-                                                    <p>
-                                                        <?= Html::encode($item['model'] instanceof \common\models\Blog ? $item['model']->title : $item['model']->title) ?>
-                                                    </p>
+                                                <div class="img" style="display: flex; align-items: center; gap: 10px;">
+                                                    <?php
+                                                    $productModel = $item['model'];
+                                                    $imageName = $productModel->image;
+
+                                                    if ($imageName && file_exists(Yii::getAlias('@webroot/') . $imageName)) {
+                                                        $imagePath = Yii::getAlias('@web/') . $imageName;
+                                                    } else {
+                                                        $imagePath = Yii::getAlias('@web/img/product-5.jpg');
+                                                    }
+                                                    ?>
+
+                                                    <img src="<?= $imagePath ?>" alt="Product" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #ddd;">
+
+                                                    <span><?= $productModel->title ?></span>
                                                 </div>
                                             </td>
                                             <td>$<?= number_format($item['price'], 0) ?></td>
@@ -61,21 +69,17 @@ use yii\helpers\Html;
                                                     <button class="btn-minus cart-update" data-id="<?= $item['model']->id ?>" data-action="minus">
                                                         <i class="fa fa-minus"></i>
                                                     </button>
-
                                                     <input type="text" value="<?= $item['qty'] ?>" class="qty-input" readonly>
-
                                                     <button class="btn-plus cart-update" data-id="<?= $item['model']->id ?>" data-action="plus">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
                                                 </div>
                                             </td>
-
                                             <td class="row-total" data-price="<?= $item['price'] ?>">
                                                 $<?= number_format($item['total'], 0) ?>
                                             </td>
-
                                             <td>
-                                                <a href="<?= Url::to(['site/remove-cart', 'id' => $item['model']->id]) ?>" class="btn btn-sm btn-danger">
+                                                <a href="<?= \yii\helpers\Url::to(['site/remove-cart', 'id' => $item['model']->id]) ?>" class="btn btn-sm btn-danger">
                                                     <i class="fa fa-trash"></i>
                                                 </a>
                                             </td>
@@ -85,7 +89,7 @@ use yii\helpers\Html;
                                     <tr>
                                         <td colspan="5" class="text-center py-5">
                                             <h4>Savatchangiz bo'sh</h4>
-                                            <a href="<?= Url::to(['site/index']) ?>" class="btn btn-primary">Xaridni davom ettirish</a>
+                                            <a href="<?= \yii\helpers\Url::to(['site/index']) ?>" class="btn btn-primary">Xaridni davom ettirish</a>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
@@ -94,6 +98,7 @@ use yii\helpers\Html;
                     </div>
                 </div>
             </div>
+
 
             <div class="col-lg-4">
                 <div class="cart-page-inner">

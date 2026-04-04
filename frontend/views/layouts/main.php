@@ -39,22 +39,29 @@ AppAsset::register($this);
     <?php $this->registerCsrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="eCommerce HTML Template Free Download" name="keywords">
-    <meta content="eCommerce HTML Template Free Download" name="description">
+    <meta content="eCommerce Store" name="keywords">
+    <meta content="Professional eCommerce Store" name="description">
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+    <!-- Favicon - @web qo'shildi -->
+    <link href="<?= Yii::getAlias('@web/img/favicon.ico') ?>" rel="icon">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400|Source+Code+Pro:700,900&display=swap" rel="stylesheet">
 
-    <!-- CSS Libraries -->
+    <!-- CSS Libraries (CDN orqali bo'lgani uchun o'zgarishsiz qoladi) -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="lib/slick/slick.css" rel="stylesheet">
-    <link href="lib/slick/slick-theme.css" rel="stylesheet">
+    
+    <!-- Slick Libraries - @web qo'shildi -->
+    <link href="<?= Yii::getAlias('@web/lib/slick/slick.css') ?>" rel="stylesheet">
+    <link href="<?= Yii::getAlias('@web/lib/slick/slick-theme.css') ?>" rel="stylesheet">
+
+    <!-- O'zingizning style.css faylingiz bo'lsa, uni ham @web bilan yozing -->
+    <link href="<?= Yii::getAlias('@web/css/style.css') ?>" rel="stylesheet">
+
     <?php $this->head() ?>
 </head>
+
 
 <body class="d-flex flex-column h-100">
     <?php $this->beginBody() ?>
@@ -90,7 +97,7 @@ AppAsset::register($this);
 
                     <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                         <div class="navbar-nav mr-auto">
-                            <a href="<?= \yii\helpers\Url::to(['site/index']) ?>" class="nav-item nav-link active">Home</a>
+                            <a href="/" class="nav-item nav-link active">Home</a>
                             <a href="<?= \yii\helpers\Url::to(['site/about']) ?>" class="nav-item nav-link">Products</a>
                             <a href="<?= \yii\helpers\Url::to(['site/card']) ?>" class="nav-item nav-link">Product Cart</a>
                             <a href="<?= \yii\helpers\Url::to(['site/checkout']) ?>" class="nav-item nav-link">Checkout</a>
@@ -126,7 +133,7 @@ AppAsset::register($this);
                 <div class="row align-items-center">
                     <div class="col-md-3">
                         <div class="logo">
-                            <a href="index.html">
+                            <a href="/">
                                 <img src="img/logo.png" alt="Logo">
                             </a>
                         </div>

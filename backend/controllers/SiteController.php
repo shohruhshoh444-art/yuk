@@ -177,8 +177,8 @@ class SiteController extends Controller
                 $newProd->created_at = time();
             }
             $newProd->updated_at = time();
-            
 
+            $newProd->slug = \yii\helpers\Inflector::slug($newProd->title);
             $newProd->imageFile = \yii\web\UploadedFile::getInstance($newProd, 'imageFile');
 
             if ($newProd->validate()) {
@@ -196,6 +196,7 @@ class SiteController extends Controller
                         $newProd->image = $path . $fileName;
                     }
                 }
+
 
                 if ($newProd->save(false)) {
                     Yii::$app->session->setFlash('success', "Mahsulot muvaffaqiyatli saqlandi!");

@@ -12,21 +12,31 @@ use yii\helpers\Url;
                     <?php if (!empty($products)): ?>
                         <?php foreach ($products as $product): ?>
                             <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="product-item shadow-sm border-0 bg-white rounded overflow-hidden">
+                                <div class="product-item shadow-sm border-0 bg-white rounded overflow-hidden" style="position: relative;">
                                     <div class="product-title p-2 text-center" style="background: #ff7466;">
-                                        <a href="#" class="text-white font-weight-bold"><?= Html::encode($product->title) ?></a>
+                                        <a href="#" class="text-white font-weight-bold"><?= \yii\helpers\Html::encode($product->title) ?></a>
                                     </div>
-                                    <div class="product-image d-flex align-items-center justify-content-center" style="height: 250px;">
-                                        <img src="<?= Url::to('@web/' . ($product->image ?? 'img/product-1.jpg')) ?>" style="max-height: 90%; max-width: 90%;">
+                                    <div class="product-image d-flex align-items-center justify-content-center" style="height: 250px; background: #fff;">
+                                        <?php
+                                        $imagePath = ($product->image && file_exists(Yii::getAlias('@webroot/') . $product->image))
+                                            ? Yii::getAlias('@web/') . $product->image
+                                            : Yii::getAlias('@web/img/product-5.jpg');
+                                        ?>
 
-                                        <div class="product-action" style="position: absolute; top: 10px; left: 10px;">
-                                            <a href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-light border mb-1"><i class="fa fa-shopping-cart"></i></a><br>
-                                            <a href="<?= Url::to(['site/add-wishlist', 'id' => $product->id]) ?>" class="btn btn-sm btn-light border"><i class="fa fa-heart text-danger"></i></a>
+                                        <img src="<?= $imagePath ?>" alt="<?= \yii\helpers\Html::encode($product->title) ?>" style="max-height: 90%; max-width: 90%; object-fit: contain;">
+
+                                        <div class="product-action" style="position: absolute; top: 50px; left: 10px; z-index: 10;">
+                                            <a href="<?= \yii\helpers\Url::to(['site/add-cart', 'id' => $product->id]) ?>" class="btn btn-sm btn-light border mb-1 shadow-sm">
+                                                <i class="fa fa-shopping-cart"></i>
+                                            </a><br>
+                                            <a href="<?= \yii\helpers\Url::to(['site/add-wishlist', 'id' => $product->id]) ?>" class="btn btn-sm btn-light border shadow-sm">
+                                                <i class="fa fa-heart text-danger"></i>
+                                            </a>
                                         </div>
                                     </div>
                                     <div class="product-price p-3 d-flex justify-content-between align-items-center bg-dark">
-                                        <h3 class="m-0 text-white">$<?= number_format($product->price, 0) ?></h3>
-                                        <a class="btn btn-danger btn-sm" href="<?= Url::to(['site/add-cart', 'id' => $product->id]) ?>">
+                                        <h3 class="m-0 text-white" style="font-size: 1.2rem;">$<?= number_format($product->price, 0) ?></h3>
+                                        <a class="btn btn-danger btn-sm" href="<?= \yii\helpers\Url::to(['site/add-cart', 'id' => $product->id]) ?>">
                                             <i class="fa fa-shopping-cart"></i> Buy Now
                                         </a>
                                     </div>
@@ -40,6 +50,7 @@ use yii\helpers\Url;
                     <?php endif; ?>
                 </div>
             </div>
+
             <div class="col-md-3">
                 <div class="sidebar shadow-sm p-4 bg-white rounded">
                     <h4 class="font-weight-bold border-bottom pb-2 mb-3">Category</h4>
@@ -79,4 +90,3 @@ use yii\helpers\Url;
     </div>
 </div>
 <!-- Brand End -->
-

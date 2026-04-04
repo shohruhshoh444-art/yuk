@@ -49,5 +49,15 @@ class Wishlist extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
         ];
     }
-
+    /**
+     * Mahsulot bilan bog'lanish
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProduct()
+    {
+        // Bu yerda Product::class - mahsulot modelining nomi
+        // 'id' - mahsulot jadvalidagi birlamchi kalit
+        // 'product_id' - wishlist jadvalidagi tashqi kalit
+        return $this->hasOne(Product::class, ['id' => 'product_id']);
+    }
 }

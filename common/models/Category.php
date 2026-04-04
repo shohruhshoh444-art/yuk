@@ -15,8 +15,26 @@ use Yii;
  * @property int|null $status
  * @property int|null $sort
  */
+
+use yii\behaviors\TimestampBehavior;
+use yii\db\Expression;
+
 class Category extends \yii\db\ActiveRecord
 {
+
+
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => TimestampBehavior::class,
+                'value' => new Expression('NOW()'), 
+            ],
+        ];
+    }
+
+
 
 
     /**
@@ -57,7 +75,7 @@ class Category extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            
+
             if ($this->hasAttribute('name')) {
                 $this->name = $this->name_uz;
             }

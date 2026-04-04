@@ -5,6 +5,8 @@ namespace console\controllers;
 use Yii;
 use yii\console\Controller;
 use common\models\User;
+use Faker\Factory;
+
 use common\models\Product;
 
 class SeedController extends Controller
@@ -28,12 +30,17 @@ class SeedController extends Controller
         $data = [
             'id' => 1,
             'status' => 1,
+            'name_uz' => 'Test Kategoriya',
+            'slug' => 'test',
             'created_at' => time(),
             'updated_at' => time(),
         ];
 
-        if (in_array('name', $columns)) {
-            $data['name'] = 'Elektronika';
+        if (in_array('name_uz', $columns)) {
+            $data['name_uz'] = 'Elektronika';
+            if (in_array('slug', $columns)) {
+                $data['slug'] = 'elektronika';
+            }
         } elseif (in_array('title', $columns)) {
             $data['title'] = 'Elektronika';
         }
@@ -65,33 +72,40 @@ class SeedController extends Controller
 
     private function seedProduct()
     {
-        Yii::$app->db->createCommand("SET FOREIGN_KEY_CHECKS = 0")->execute();
-        Yii::$app->db->createCommand("TRUNCATE TABLE product")->execute();
+        $db = Yii::$app->db;
+        $db->createCommand("SET FOREIGN_KEY_CHECKS = 0")->execute();
+        $db->createCommand()->truncateTable('{{%product}}')->execute();
 
+        // FAQAT to'g'ri rasm linklarini ishlating (id/ raqami har xil bo'lsin)
         $items = [
-            ['iPhone 15 Pro', 'Titan korpus', 1200, 1100, 15, 'iphone.jpg'],
-            ['MacBook Air M3', 'Apple Silicon', 1400, 1300, 10, 'macbook.jpg'],
-            ['AirPods Pro 2', 'Noise canceling', 250, 220, 50, 'airpods.jpg'],
-            ['Apple Watch 9', 'Smart watch', 450, 420, 30, 'watch.jpg'],
+            ['title' => 'iPhone 15 Pro', 'slug' => 'iphone-15-pro', 'img' => 'https://picsum.photos'],
+            ['title' => 'MacBook Air M3', 'slug' => 'macbook-air-m3', 'img' => 'https://picsum.photos'],
+            ['title' => 'AirPods Pro 2', 'slug' => 'airpods-pro-2', 'img' => 'https://picsum.photos'],
+            ['title' => 'Apple Watch 9', 'slug' => 'apple-watch-9', 'img' => 'https://picsum.photos'],
         ];
 
         foreach ($items as $item) {
-            $model = new Product();
-            $model->category_id = 1;
-            $model->title = $item[0];
-            $model->description = $item[1];
-            $model->price = $item[2];
-            $model->discount_price = $item[3];
-            $model->stock = $item[4];
-            $model->image = $item[5];
-            $model->status = 1;
-            $model->created_at = time();
-            $model->updated_at = time();
-            $model->save(false);
+            $db->createCommand()->insert('{{%product}}', [
+                'category_id'    => 1,
+                'title'          => $item['title'],
+                'slug'           => $item['slug'],
+                'description'    => 'Professional mahsulot tavsifi.',
+                'price'          => 1200,
+                'discount_price' => 1100,
+                'stock'          => 10,
+                'image'          => $item['img'], // BU YERDA GOOGLE LINKI BO'LMASLIGI KERAK!
+                'status'         => 1,
+                'created_at'     => time(),
+                'updated_at'     => time(),
+            ])->execute();
         }
-        Yii::$app->db->createCommand("SET FOREIGN_KEY_CHECKS = 1")->execute();
-        echo "Product: 4 ta mahsulot yaratildi.\n";
+
+        $db->createCommand("SET FOREIGN_KEY_CHECKS = 1")->execute();
+        echo "Product: 4 ta mahsulot to'g'ri rasm linklari bilan yaratildi.\n";
     }
+
+
+
     private function seedBlog()
     {
         Yii::$app->db->createCommand("DELETE FROM blog")->execute();

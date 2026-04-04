@@ -1,107 +1,83 @@
 <?php
-
-/** @var yii\web\View $this */
-
+use yii\widgets\ActiveForm;
 use yii\helpers\Html;
-?>
-<!-- Breadcrumb Start -->
-<div class="breadcrumb-wrap">
-    <div class="container-fluid">
-        <ul class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/index']) ?>">Home</a></li>
-            <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/about']) ?>">Products</a></li>
-            <li class="breadcrumb-item active">Checkout</li>
-            <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/contact']) ?>">Contact US</a></li>
-        </ul>
-    </div>
-</div>
-<!-- Breadcrumb End -->
 
-<!-- Checkout Start -->
-<div class="checkout">
-    <div class="container-fluid">
-        <div class="row">
+// FORMADAN BOSHLAYMIZ (Hammasini o'rab oladi)
+$form = ActiveForm::begin(['id' => 'checkout-form']); ?>
 
-            <?php
-
-            use yii\widgets\ActiveForm;
-            ?>
-
+<div class="row">
+    <!-- CHAP TOMON: Billing Address -->
+    <div class="col-lg-8">
+        <div class="checkout-inner shadow-sm p-4" style="background: #fff; border-radius: 12px;">
+            <h2 class="mb-4">Billing Address</h2>
             <div class="row">
-                <div class="col-lg-8">
-                    <?php $form = ActiveForm::begin([
-                        'id' => 'checkout-form',
-                        'action' => ['site/place-order'], 
-                        'method' => 'post',
-                    ]); ?>
-
-                    <div class="checkout-inner">
-                        <div class="billing-address">
-                            <h2>Billing Address</h2>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <?= $form->field($orderModel, 'full_name')->textInput(['placeholder' => 'Ism-sharifingiz']) ?>
-                                </div>
-                                <div class="col-md-6">
-                                    <?= $form->field($orderModel, 'phone')->textInput(['placeholder' => '+998...']) ?>
-                                </div>
-                                <div class="col-md-12">
-                                    <?= $form->field($orderModel, 'address')->textarea(['placeholder' => 'Yetkazib berish manzili']) ?>
-                                </div>
-                                <?= $form->field($orderModel, 'delivery_type')->hiddenInput(['value' => 'Standard'])->label(false) ?>
-                            </div>
-                        </div>
-                    </div>
-
-                    <?php ActiveForm::end(); ?>
+                <div class="col-md-6">
+                    <?= $form->field($orderModel, 'full_name')->textInput(['placeholder' => 'Ism-sharifingiz'])->label('Full Name') ?>
                 </div>
-
-                <div class="col-lg-4">
-                    <div class="checkout-inner">
-                        <div class="checkout-summary">
-                            <h1>Cart Total</h1>
-                            <?php foreach ($products as $item): ?>
-                                <p><?= Html::encode($item['model']->title) ?> (x<?= $item['qty'] ?>)
-                                    <span>$<?= number_format($item['model']->price * $item['qty'], 0) ?></span>
-                                </p>
-                            <?php endforeach; ?>
-                            <p class="sub-total">Sub Total<span>$<?= number_format($totalSum, 0) ?></span></p>
-                            <p class="ship-cost">Shipping Cost<span>$1</span></p>
-                            <h2>Grand Total<span>$<?= number_format($totalSum + 1, 0) ?></span></h2>
-                        </div>
-
-                        <div class="checkout-payment">
-                            <div class="payment-methods">
-                                <h1>Payment Methods</h1>
-                                <?= $form->field($orderModel, 'payment_method')->radioList([
-                                    'Cash on Delivery' => 'Cash on Delivery',
-                                    'Paypal' => 'Paypal',
-                                    'Card' => 'Direct Bank Transfer'
-                                ], [
-                                    'item' => function ($index, $label, $name, $checked, $value) {
-                                        $check = $checked ? 'checked' : '';
-                                        return "
-                <div class='payment-method'>
-                    <div class='custom-control custom-radio'>
-                        <input type='radio' class='custom-control-input' id='payment-$index' name='$name' value='$value' $check>
-                        <label class='custom-control-label' for='payment-$index'>$label</label>
-                    </div>
-                </div>";
-                                    }
-                                ])->label(false) ?>
-
-                            </div>
-                            <div class="checkout-btn">
-                                <?= Html::submitButton('Place Order', ['class' => 'btn', 'form' => 'checkout-form']) ?>
-                            </div>
-                        </div>
-
-                    </div>
+                <div class="col-md-6">
+                    <?= $form->field($orderModel, 'phone')->textInput(['placeholder' => '+998...'])->label('Phone') ?>
+                </div>
+                <div class="col-md-12">
+                    <?= $form->field($orderModel, 'address')->textarea(['rows' => 3, 'placeholder' => 'Yetkazib berish manzili'])->label('Address') ?>
                 </div>
             </div>
 
+            <!-- TO'LOV USULLARI SHU YERDA BO'LISHI SHART -->
+            <div class="checkout-payment mt-4 pt-4 border-top">
+                <h2 class="mb-3">To'lov usullari</h2>
+                <?= $form->field($orderModel, 'payment_method')->radioList([
+                    'Cash on Delivery' => 'Naqd pul (Yetkazilganda)',
+                    'Paypal' => 'PayPal',
+                    'Card' => 'Bank kartasi (Visa/Mastercard)'
+                ], [
+                    'item' => function ($index, $label, $name, $checked, $value) {
+                        $check = $checked ? 'checked' : '';
+                        return "
+                        <div class='payment-method mb-2'>
+                            <div class='custom-control custom-radio' style='padding: 10px; border: 1px solid #eee; border-radius: 8px;'>
+                                <input type='radio' class='custom-control-input' id='payment-$index' name='$name' value='$value' $check required>
+                                <label class='custom-control-label font-weight-bold' for='payment-$index' style='cursor: pointer; width: 100%;'>
+                                    $label
+                                </label>
+                            </div>
+                        </div>";
+                    }
+                ])->label(false) ?>
+            </div>
+        </div>
+    </div>
 
+    <!-- O'NG TOMON: Buyurtma xulosasi va Tugma -->
+    <div class="col-lg-4">
+        <div class="checkout-summary shadow-sm p-4" style="background: #fff; border-radius: 12px;">
+            <h1>Cart Total</h1>
+            <?php foreach ($products as $item): ?>
+                <p class="d-flex justify-content-between">
+                    <?= Html::encode($item['model']->title) ?> (x<?= $item['qty'] ?>)
+                    <span>$<?= number_format($item['model']->price * $item['qty'], 0) ?></span>
+                </p>
+            <?php endforeach; ?>
+            <hr>
+            <p class="sub-total d-flex justify-content-between">Sub Total<span>$<?= number_format($totalSum, 0) ?></span></p>
+            <p class="ship-cost d-flex justify-content-between">Shipping Cost<span>$1</span></p>
+            <h2 class="d-flex justify-content-between mt-3" style="color: #ff7466;">Grand Total<span>$<?= number_format($totalSum + 1, 0) ?></span></h2>
+            
+            <div class="checkout-btn mt-4">
+                <?= Html::submitButton('Buyurtma berish', [
+                    'class' => 'btn btn-lg btn-danger btn-block',
+                    'style' => 'background: #ff7466; border: none; border-radius: 12px; font-weight: bold; padding: 15px;'
+                ]) ?>
+            </div>
         </div>
     </div>
 </div>
-<!-- Checkout End -->
+
+<?php ActiveForm::end(); ?>
+
+<style>
+    /* Radio tugma tanlanganda rangni o'zgartirish */
+    .custom-control-input:checked ~ .custom-control-label::before {
+        background-color: #ff7466;
+        border-color: #ff7466;
+    }
+</style>

@@ -79,27 +79,47 @@ $this->title = 'Mahsulotlar Boshqaruvi';
                     ) ?>
 
                     <?= $form->field($newProd, 'title')->textInput(['placeholder' => 'Mahsulot nomi...']) ?>
+
                     <?= $form->field($newProd, 'imageFile')->fileInput() ?>
 
                     <?php if (!$newProd->isNewRecord && $newProd->image): ?>
                         <div class="mb-2">
                             <p class="small text-muted mb-1">Hozirgi rasm:</p>
-                            <img src="<?= Yii::getAlias('@frontend/web/') . $newProd->image ?>" width="100" class="img-thumbnail">
+                            <?php
+                            $img = $newProd->image;
+                            $imagePath = (strpos($img, 'http') === 0) ? $img : Yii::getAlias('@frontend/web/') . $img;
+                            ?>
+                            <img src="<?= $imagePath ?>" width="100" class="img-thumbnail">
                         </div>
                     <?php endif; ?>
 
+                    <!-- Narxlar va Stock bir qatorda -->
                     <div class="row">
-                        <div class="col-md-6"><?= $form->field($newProd, 'price')->textInput(['type' => 'number']) ?></div>
-                        <div class="col-md-6"><?= $form->field($newProd, 'discount_price')->textInput(['type' => 'number']) ?></div>
+                        <div class="col-md-4">
+                            <?= $form->field($newProd, 'price')->textInput(['type' => 'number', 'placeholder' => '0']) ?>
+                        </div>
+                        <div class="col-md-5">
+                            <?= $form->field($newProd, 'discount_price')->textInput(['type' => 'number', 'placeholder' => '0']) ?>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- STOCK MAYDONI SHU YERDA -->
+                        <?= $form->field($newProd, 'stock')->textInput(['type' => 'number', 'placeholder' => 'Soni...']) ?>
                     </div>
 
                     <?= $form->field($newProd, 'description')->textarea(['rows' => 3]) ?>
-                    <?= $form->field($newProd, 'specifications')->textarea(['rows' => 2, 'placeholder' => 'Rang: Qora, Hajm: 128GB...']) ?>
+
+                    <?= $form->field($newProd, 'specifications')->textarea([
+                        'rows' => 2,
+                        'placeholder' => 'Rang: Qora, Hajm: 128GB...'
+                    ]) ?>
 
                     <?= $form->field($newProd, 'status')->dropDownList([1 => 'Sotuvda', 0 => 'Yo\'q']) ?>
 
                     <div class="form-group mb-0">
-                        <?= Html::submitButton($newProd->isNewRecord ? '➕ Qo\'shish' : '💾 Yangilash', ['class' => 'btn btn-block btn-' . ($newProd->isNewRecord ? 'info' : 'primary')]) ?>
+                        <?= Html::submitButton($newProd->isNewRecord ? '➕ Qo\'shish' : '💾 Yangilash', [
+                            'class' => 'btn btn-block btn-' . ($newProd->isNewRecord ? 'info' : 'primary')
+                        ]) ?>
                         <?php if (!$newProd->isNewRecord): ?>
                             <?= Html::a('Bekor qilish', ['product'], ['class' => 'btn btn-link btn-block btn-sm']) ?>
                         <?php endif; ?>
@@ -107,6 +127,7 @@ $this->title = 'Mahsulotlar Boshqaruvi';
 
                     <?php ActiveForm::end(); ?>
                 </div>
+
             </div>
         </div>
 

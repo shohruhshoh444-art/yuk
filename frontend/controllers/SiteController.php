@@ -11,6 +11,7 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
+use common\models\Order;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
@@ -151,6 +152,18 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
+    public function actionView($id)
+    {
+        $product = \common\models\Product::findOne($id);
+        if (!$product) {
+            throw new \yii\web\NotFoundHttpException("Mahsulot topilmadi.");
+        }
+
+        return $this->render('view', [
+            'product' => $product,
+        ]);
+    }
+
     public function actionRemoveCart($id)
     {
         $session = Yii::$app->session;
@@ -190,89 +203,118 @@ class SiteController extends Controller
         ]);
     }
 
-public function actionCard()
-{
-    $session = Yii::$app->session;
-    if (!$session->isActive) {
-        $session->open();
-    }
-
-    $cart = $session->get('cart', []);
-    $products = [];
-    $totalSum = 0;
-
-    if (!empty($cart)) {
-        foreach ($cart as $id => $qty) {
-            if (strpos($id, 'blog_') === 0) {
-                $blogId = str_replace('blog_', '', $id);
-                $blog = \common\models\Blog::findOne($blogId);
-                if ($blog) {
-                    $price = 0;
-                    $total = $price * $qty;
-                    
-                    $products[] = [
-                        'model' => $blog, 
-                        'qty' => $qty,
-                        'price' => $price,
-                        'total' => $total
-                    ];
-                    $totalSum += $total;
-                }
-            }
-            else {
-                $product = \common\models\Product::findOne($id);
-                if ($product) {
-                    $total = $product->price * $qty;
-                    
-                    $products[] = [
-                        'model' => $product,
-                        'qty' => $qty,
-                        'price' => $product->price,
-                        'total' => $total
-                    ];
-                    $totalSum += $total;
-                }
-            }
-        }
-    }
-
-    return $this->render('card', [
-        'products' => $products,
-        'totalSum' => $totalSum
-    ]);
-}
-
-
-
-
-    public function actionCheckout()
+    public function actionCard()
     {
         $session = Yii::$app->session;
-        $cart = $session->get('cart', []);
+        if (!$session->isActive) {
+            $session->open();
+        }
 
+        $cart = $session->get('cart', []);
         $products = [];
         $totalSum = 0;
 
         if (!empty($cart)) {
             foreach ($cart as $id => $qty) {
-                $product = \common\models\Product::findOne($id);
-                if ($product) {
-                    $products[] = [
-                        'model' => $product,
-                        'qty' => $qty
-                    ];
-                    $totalSum += ($product->price * $qty);
+                if (strpos($id, 'blog_') === 0) {
+                    $blogId = str_replace('blog_', '', $id);
+                    $blog = \common\models\Blog::findOne($blogId);
+                    if ($blog) {
+                        $price = 0;
+                        $total = $price * $qty;
+
+                        $products[] = [
+                            'model' => $blog,
+                            'qty' => $qty,
+                            'price' => $price,
+                            'total' => $total
+                        ];
+                        $totalSum += $total;
+                    }
+                } else {
+                    $product = \common\models\Product::findOne($id);
+                    if ($product) {
+                        $total = $product->price * $qty;
+
+                        $products[] = [
+                            'model' => $product,
+                            'qty' => $qty,
+                            'price' => $product->price,
+                            'total' => $total
+                        ];
+                        $totalSum += $total;
+                    }
                 }
             }
         }
-        $orderModel = new \common\models\Order();
 
-        return $this->render('checkout', [
+        return $this->render('card', [
             'products' => $products,
-            'totalSum' => $totalSum,
-            'orderModel' => $orderModel,
+            'totalSum' => $totalSum
         ]);
     }
+
+
+
+    public function actionCheckout()
+    {
+        // Agar mehmon bo'lsa, login sahifasiga yuboramiz (user_id kerakligi uchun)
+        if (Yii::$app->user->isGuest) {
+            Yii::$app->session->setFlash('error', "Buyurtma berish uchun avval tizimga kiring.");
+            return $this->redirect(['site/login']);
+        }
+
+        $orderModel = new \common\models\Order();
+        $cart = Yii::$app->session->get('cart', []);
+        $products = [];
+        $totalSum = 0;
+
+        // Savatchani hisoblash
+        if (!empty($cart)) {
+            foreach ($cart as $id => $qty) {
+                $model = \common\models\Product::findOne($id);
+                if ($model) {
+                    $products[] = [
+                        'model' => $model,
+                        'qty' => $qty,
+                    ];
+                    $totalSum += $model->price * $qty;
+                }
+            }
+        } else {
+            // Savat bo'sh bo'lsa, indexga qaytaramiz
+            Yii::$app->session->setFlash('info', "Savatchangiz bo'sh.");
+            return $this->redirect(['index']);
+        }
+
+        // Formadan ma'lumot kelsa
+        if ($orderModel->load(Yii::$app->request->post())) {
+            $orderModel->user_id = Yii::$app->user->id;
+            $orderModel->total_price = (float)$totalSum;
+            $orderModel->created_at = time();
+            // updated_at bu yerda bo'lmasligi kerak, chunki bazada yo'q
+            $orderModel->status = 1;
+
+            if ($orderModel->save()) {
+                Yii::$app->session->remove('cart');
+                Yii::$app->session->setFlash('success', "Buyurtmangiz muvaffaqiyatli qabul qilindi!");
+                return $this->redirect(['index']);
+            } else {
+                // Agar baribir saqlanmasa, xatolarni ko'ramiz
+                Yii::$app->session->setFlash('error', "Xatolik: " . json_encode($orderModel->getErrors()));
+            }
+        }
+
+
+        return $this->render('checkout', [
+            'orderModel' => $orderModel,
+            'products'   => $products,
+            'totalSum'   => $totalSum,
+        ]);
+    }
+
+
+
 
     public function actionPlaceOrder()
     {
@@ -424,21 +466,21 @@ public function actionCard()
     }
 
 
-   public function actionAddBlogToCart($id)
-{
-    $session = Yii::$app->session;
-    $cart = $session->get('cart', []);
-    $key = 'blog_' . $id;
+    public function actionAddBlogToCart($id)
+    {
+        $session = Yii::$app->session;
+        $cart = $session->get('cart', []);
+        $key = 'blog_' . $id;
 
-    if (isset($cart[$key])) {
-        $cart[$key]++;
-    } else {
-        $cart[$key] = 1;
+        if (isset($cart[$key])) {
+            $cart[$key]++;
+        } else {
+            $cart[$key] = 1;
+        }
+
+        $session->set('cart', $cart);
+        return $this->redirect(['site/card']);
     }
-
-    $session->set('cart', $cart);
-    return $this->redirect(['site/card']);
-}
 
 
 
@@ -466,34 +508,49 @@ public function actionCard()
         Yii::$app->session->setFlash('success', "Mahsulot sevimlilarga qo'shildi!");
         return $this->redirect(Yii::$app->request->referrer);
     }
-    public function actionWishlist($del = null)
+    public function actionWishlist($id = null)
     {
-        $session = Yii::$app->session;
-        $wishlist = $session->get('wishlist', []);
+        if ($id !== null) {
+            \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-
-        if ($del !== null) {
-            if (isset($wishlist[$del])) {
-                unset($wishlist[$del]);
-                $session->set('wishlist', $wishlist);
+            if (Yii::$app->user->isGuest) {
+                return ['status' => 'error', 'message' => 'Avval tizimga kiring!'];
             }
-            return $this->redirect(['wishlist']);
-        }
 
-        $products = [];
-        if (!empty($wishlist)) {
-            foreach ($wishlist as $id => $value) {
-                $product = \common\models\Product::findOne($id);
-                if ($product) {
-                    $products[] = $product;
+            $userId = Yii::$app->user->id;
+            $exists = \common\models\Wishlist::find()
+                ->where(['user_id' => $userId, 'product_id' => $id])
+                ->exists();
+
+            if (!$exists) {
+                $model = new \common\models\Wishlist();
+                $model->user_id = $userId;
+                $model->product_id = $id;
+                $model->created_at = time();
+
+                if ($model->save()) {
+                    return ['status' => 'success', 'message' => 'Mahsulot saqlandi!'];
                 }
             }
+            return ['status' => 'info', 'message' => 'Bu mahsulot allaqachon mavjud.'];
         }
 
+        if (Yii::$app->user->isGuest) {
+            return $this->redirect(['site/login']);
+        }
+
+        $wishlistItems = \common\models\Wishlist::find()
+            ->where(['user_id' => Yii::$app->user->id])
+            ->with('product')
+            ->all();
+
         return $this->render('wishlist', [
-            'products' => $products,
+            'wishlistItems' => $wishlistItems,
         ]);
     }
+
+
+
     public function actionUpdateCart($id, $qty)
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
