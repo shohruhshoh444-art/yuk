@@ -1,5 +1,9 @@
 <?php
 
+$latestBlog = \common\models\Blog::find()->where(['status' => 1])->one();
+
+
+
 /** @var \yii\web\View $this */
 /** @var string $content */
 
@@ -15,7 +19,7 @@ $session = Yii::$app->session;
 $cart = $session->get('cart', []);
 $cartCount = 0;
 foreach ($cart as $qty) {
-    $cartCount += $qty; 
+    $cartCount += $qty;
 }
 
 $wishlistCount = 0;
@@ -41,22 +45,12 @@ AppAsset::register($this);
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="eCommerce Store" name="keywords">
     <meta content="Professional eCommerce Store" name="description">
-
-    <!-- Favicon - @web qo'shildi -->
     <link href="<?= Yii::getAlias('@web/img/favicon.ico') ?>" rel="icon">
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400|Source+Code+Pro:700,900&display=swap" rel="stylesheet">
-
-    <!-- CSS Libraries (CDN orqali bo'lgani uchun o'zgarishsiz qoladi) -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Slick Libraries - @web qo'shildi -->
     <link href="<?= Yii::getAlias('@web/lib/slick/slick.css') ?>" rel="stylesheet">
     <link href="<?= Yii::getAlias('@web/lib/slick/slick-theme.css') ?>" rel="stylesheet">
-
-    <!-- O'zingizning style.css faylingiz bo'lsa, uni ham @web bilan yozing -->
     <link href="<?= Yii::getAlias('@web/css/style.css') ?>" rel="stylesheet">
 
     <?php $this->head() ?>
@@ -102,7 +96,11 @@ AppAsset::register($this);
                             <a href="<?= \yii\helpers\Url::to(['site/card']) ?>" class="nav-item nav-link">Product Cart</a>
                             <a href="<?= \yii\helpers\Url::to(['site/checkout']) ?>" class="nav-item nav-link">Checkout</a>
                             <a href="<?= \yii\helpers\Url::to(['site/contact']) ?>" class="nav-item nav-link">Contact Us</a>
+                            <a href="<?= $latestBlog ? \yii\helpers\Url::to(['site/promotions', 'id' => $latestBlog->id]) : '#' ?>" class="nav-item nav-link">
+                                Blog
+                            </a>
                         </div>
+
 
                         <div class="navbar-nav ml-auto">
                             <div class="nav-item dropdown">
@@ -117,7 +115,6 @@ AppAsset::register($this);
                             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">My Account</a>
                             <div class="dropdown-menu">
                                 <a href="<?= \yii\helpers\Url::to(['site/profil']) ?>" class="dropdown-item">Profil</a>
-                                <a href="<?= \yii\helpers\Url::to(['site/logout']) ?>" data-method="post" class="dropdown-item">Logout</a>
 
                             </div>
                         <?php endif; ?>
@@ -134,7 +131,7 @@ AppAsset::register($this);
                     <div class="col-md-3">
                         <div class="logo">
                             <a href="/">
-                                <img src="img/logo.png" alt="Logo">
+                                <img src="/img/logo.png" alt="Logo">
                             </a>
                         </div>
                     </div>
@@ -230,15 +227,15 @@ AppAsset::register($this);
                     <div class="col-md-6">
                         <div class="payment-method">
                             <h2>We Accept:</h2>
-                            <img src="img/payment-method.png" alt="Payment Method" />
+                            <img src="/img/payment-method.png" alt="Payment Method" />
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="payment-security">
                             <h2>Secured By:</h2>
-                            <img src="img/godaddy.svg" alt="Payment Security" />
-                            <img src="img/norton.svg" alt="Payment Security" />
-                            <img src="img/ssl.svg" alt="Payment Security" />
+                            <img src="/img/godaddy.svg" alt="Payment Security" />
+                            <img src="/img/norton.svg" alt="Payment Security" />
+                            <img src="/img/ssl.svg" alt="Payment Security" />
                         </div>
                     </div>
                 </div>

@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\models\Category;
 use frontend\models\ResendVerificationEmailForm;
 use frontend\models\VerifyEmailForm;
 use Yii;
@@ -12,10 +13,13 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
 use common\models\Order;
+use common\models\Product;
+use common\models\Wishlist;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
 use frontend\models\ContactForm;
+use yii\web\Response;
 
 /**
  * Site controller
@@ -48,6 +52,8 @@ class SiteController extends Controller
                 'class' => VerbFilter::class,
                 'actions' => [
                     'logout' => ['post'],
+                    'toggle-wishlist' => ['POST'],
+                    'toggle-cart' => ['POST'],
                 ],
             ],
         ];
@@ -74,22 +80,86 @@ class SiteController extends Controller
      *
      * @return mixed
      */
+
+
     public function actionIndex($category_id = null)
     {
-        $categories = \common\models\Category::find()->all();
-        $query = \common\models\Product::find()->where(['status' => 1]);
+        $query = Product::find()->where(['status' => 1]);
+        $active_cat = null;
+
         if ($category_id) {
-            $query->andWhere(['category_id' => $category_id]);
+            $active_cat = Category::findOne($category_id);
+            if ($active_cat) {
+                $ids = [$category_id];
+                foreach ($active_cat->childs as $child) {
+                    $ids[] = $child->id;
+                }
+                $query->andWhere(['category_id' => $ids]);
+
+                if (!empty($active_cat->childs)) {
+                    $displayCategories = $active_cat->childs;
+                } else {
+                    $displayCategories = Category::find()->where(['parent_id' => $active_cat->parent_id])->all();
+                }
+            }
+        } else {
+            $displayCategories = Category::find()->where(['parent_id' => null])->all();
         }
-        $products = $query->orderBy(['id' => SORT_DESC])->all();
-        $blogs = \common\models\Blog::find()->where(['status' => 1])->all();
+
+        $products = $query->all();
+
+        if (Yii::$app->request->isAjax) {
+            Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+            return [
+                'productsHtml' => $this->renderPartial('_product_list', ['products' => $products]),
+                'categoriesHtml' => $this->renderPartial('_category_sidebar', [
+                    'categories' => $displayCategories,
+                    'active_cat' => $active_cat
+                ]),
+            ];
+        }
 
         return $this->render('index', [
-            'categories' => $categories,
             'products' => $products,
-            'blogs' => $blogs,
-            'active_category' => $category_id
+            'categories' => $displayCategories,
+            'active_category' => $category_id,
+            'active_cat_model' => $active_cat,
+            'blogs' => \common\models\Blog::find()->where(['status' => 1])->all(),
         ]);
+    }
+
+
+
+
+
+    public function actionAjaxFilter()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $catId = Yii::$app->request->post('id');
+
+        $query = \common\models\Product::find()->where(['status' => 1]);
+        if ($catId) $query->andWhere(['category_id' => $catId]);
+        $products = $query->all();
+
+        $parentId = null;
+        $isRoot = true;
+        if ($catId) {
+            $currentCat = \common\models\Category::findOne($catId);
+            if ($currentCat) {
+                $categories = !empty($currentCat->childs) ? $currentCat->childs : \common\models\Category::find()->where(['parent_id' => $currentCat->parent_id])->all();
+                $parentId = $currentCat->parent_id;
+                $isRoot = false;
+            }
+        } else {
+            $categories = \common\models\Category::find()->where(['parent_id' => null])->all();
+        }
+
+        return [
+            'products' => $this->renderPartial('_product_list', ['products' => $products]),
+            'categories' => $this->renderPartial('_category_list', ['categories' => $categories]),
+            'parent_id' => $parentId,
+            'is_root' => $isRoot
+        ];
     }
 
 
@@ -154,15 +224,44 @@ class SiteController extends Controller
     }
     public function actionView($id)
     {
-        $product = \common\models\Product::findOne($id);
-        if (!$product) {
+        $model = \common\models\Product::findOne($id);
+        if (!$model) {
             throw new \yii\web\NotFoundHttpException("Mahsulot topilmadi.");
         }
 
+        $relatedProducts = \common\models\Product::find()
+            ->where(['category_id' => $model->category_id, 'status' => 1])
+            ->andWhere(['!=', 'id', $id]) // joriy mahsulot chiqmasligi uchun
+            ->limit(4)
+            ->all();
+
         return $this->render('view', [
-            'product' => $product,
+            'model' => $model,
+            'relatedProducts' => $relatedProducts,
         ]);
     }
+    public function actionViewBlog($id)
+    {
+        $blog = \common\models\Blog::findOne($id);
+
+        if (!$blog) {
+            throw new \yii\web\NotFoundHttpException("Aksiya topilmadi.");
+        }
+
+        $products = \common\models\Product::find()
+            ->where(['category_id' => $blog->category_id, 'status' => 1])
+            ->limit(8)
+            ->all();
+
+        return $this->render('viewblog', [
+            'blog' => $blog,
+            'products' => $products,
+        ]);
+    }
+
+
+
+
 
     public function actionRemoveCart($id)
     {
@@ -185,23 +284,29 @@ class SiteController extends Controller
      */
     public function actionAbout($category_id = null)
     {
-        $about = new \stdClass();
-        $about->id = 1;
-        $categories = \common\models\Category::find()->all();
-        $query = \common\models\Product::find();
+        $query = \common\models\Product::find()->where(['status' => 1]);
+        $active_cat = null;
+
         if ($category_id) {
-            $query->andWhere(['category_id' => $category_id]);
+            $active_cat = \common\models\Category::findOne($category_id);
+            if ($active_cat) {
+                $query->andWhere(['category_id' => $category_id]);
+                $categories = !empty($active_cat->childs) ? $active_cat->childs : \common\models\Category::find()->where(['parent_id' => null])->all();
+            } else {
+                $categories = \common\models\Category::find()->where(['parent_id' => null])->all();
+            }
+        } else {
+            $categories = \common\models\Category::find()->where(['parent_id' => null])->all();
         }
 
-        $products = $query->all();
-
         return $this->render('about', [
-            'about' => $about,
-            'products' => $products,
+            'products' => $query->all(),
             'categories' => $categories,
-            'active_category' => $category_id,
+            'active_cat' => $active_cat,
         ]);
     }
+
+
 
     public function actionCard()
     {
@@ -255,10 +360,8 @@ class SiteController extends Controller
     }
 
 
-
     public function actionCheckout()
     {
-        // Agar mehmon bo'lsa, login sahifasiga yuboramiz (user_id kerakligi uchun)
         if (Yii::$app->user->isGuest) {
             Yii::$app->session->setFlash('error', "Buyurtma berish uchun avval tizimga kiring.");
             return $this->redirect(['site/login']);
@@ -268,12 +371,14 @@ class SiteController extends Controller
         $cart = Yii::$app->session->get('cart', []);
         $products = [];
         $totalSum = 0;
-
-        // Savatchani hisoblash
         if (!empty($cart)) {
             foreach ($cart as $id => $qty) {
                 $model = \common\models\Product::findOne($id);
                 if ($model) {
+                    if ($model->stock <= 0) {
+                        continue;
+                    }
+
                     $products[] = [
                         'model' => $model,
                         'qty' => $qty,
@@ -281,30 +386,56 @@ class SiteController extends Controller
                     $totalSum += $model->price * $qty;
                 }
             }
-        } else {
-            // Savat bo'sh bo'lsa, indexga qaytaramiz
-            Yii::$app->session->setFlash('info', "Savatchangiz bo'sh.");
-            return $this->redirect(['index']);
         }
 
-        // Formadan ma'lumot kelsa
-        if ($orderModel->load(Yii::$app->request->post())) {
-            $orderModel->user_id = Yii::$app->user->id;
-            $orderModel->total_price = (float)$totalSum;
-            $orderModel->created_at = time();
-            // updated_at bu yerda bo'lmasligi kerak, chunki bazada yo'q
-            $orderModel->status = 1;
+        if (empty($products)) {
+            Yii::$app->session->setFlash('error', "Savatchangiz bo'sh yoki mahsulotlar tugab qolgan.");
+            return $this->redirect(['site/card']);
+        }
 
-            if ($orderModel->save()) {
-                Yii::$app->session->remove('cart');
-                Yii::$app->session->setFlash('success', "Buyurtmangiz muvaffaqiyatli qabul qilindi!");
-                return $this->redirect(['index']);
-            } else {
-                // Agar baribir saqlanmasa, xatolarni ko'ramiz
-                Yii::$app->session->setFlash('error', "Xatolik: " . json_encode($orderModel->getErrors()));
+        if ($orderModel->load(Yii::$app->request->post())) {
+
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                foreach ($products as $item) {
+                    $freshProduct = \common\models\Product::findOne($item['model']->id);
+
+                    if (!$freshProduct || $freshProduct->stock <= 0) {
+                        throw new \Exception("Kechirasiz, '" . $freshProduct->title . "' hozirgina tugab qoldi.");
+                    }
+
+                    if ($item['qty'] > $freshProduct->stock) {
+                        throw new \Exception("'" . $freshProduct->title . "' dan omborda yetarli emas (Mavjud: " . $freshProduct->stock . " ta).");
+                    }
+                }
+
+                $orderModel->user_id = Yii::$app->user->id;
+                $orderModel->total_price = (float)$totalSum;
+                $orderModel->created_at = time();
+                $orderModel->status = 1;
+
+                if ($orderModel->save()) {
+                    foreach ($products as $item) {
+                        $product = \common\models\Product::findOne($item['model']->id);
+                        $product->stock -= $item['qty'];
+                        if (!$product->save(false)) {
+                            throw new \Exception("Omborni yangilashda xatolik yuz berdi.");
+                        }
+                    }
+
+                    $transaction->commit();
+                    Yii::$app->session->remove('cart');
+                    Yii::$app->session->setFlash('success', "Buyurtmangiz muvaffaqiyatli qabul qilindi!");
+                    return $this->redirect(['index']);
+                } else {
+                    throw new \Exception("Buyurtmani saqlab bo'lmadi.");
+                }
+            } catch (\Exception $e) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', $e->getMessage());
+                return $this->refresh();
             }
         }
-
 
         return $this->render('checkout', [
             'orderModel' => $orderModel,
@@ -312,6 +443,26 @@ class SiteController extends Controller
             'totalSum'   => $totalSum,
         ]);
     }
+
+
+
+    public function actionPromotions()
+    {
+        $promotions = \common\models\Blog::find()
+            ->where(['status' => 1])
+            ->orderBy(['id' => SORT_DESC])
+            ->all();
+
+        return $this->render('promotions', [
+            'promotions' => $promotions,
+        ]);
+    }
+
+
+
+
+
+
 
 
 
@@ -411,35 +562,6 @@ class SiteController extends Controller
         return $this->redirect(['profil']);
     }
 
-
-
-    public function actionAddToWishlist($id)
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        if (Yii::$app->user->isGuest) {
-            return ['success' => false, 'message' => 'Avval tizimga kiring!'];
-        }
-
-        $userId = Yii::$app->user->id;
-        $exists = (new \yii\db\Query())
-            ->from('wishlist')
-            ->where(['user_id' => $userId, 'product_id' => $id])
-            ->exists();
-
-        if ($exists) {
-            Yii::$app->db->createCommand()->delete('wishlist', ['user_id' => $userId, 'product_id' => $id])->execute();
-            return ['success' => true, 'status' => 'removed'];
-        } else {
-            Yii::$app->db->createCommand()->insert('wishlist', [
-                'user_id' => $userId,
-                'product_id' => $id,
-                'created_at' => date('Y-m-d H:i:s')
-            ])->execute();
-            return ['success' => true, 'status' => 'added'];
-        }
-    }
-
     public function actionAddFromBlog($category_id)
     {
         $product = \common\models\Product::find()
@@ -465,89 +587,122 @@ class SiteController extends Controller
         return $this->redirect(['site/card']);
     }
 
-
-    public function actionAddBlogToCart($id)
-    {
-        $session = Yii::$app->session;
-        $cart = $session->get('cart', []);
-        $key = 'blog_' . $id;
-
-        if (isset($cart[$key])) {
-            $cart[$key]++;
-        } else {
-            $cart[$key] = 1;
-        }
-
-        $session->set('cart', $cart);
-        return $this->redirect(['site/card']);
-    }
-
-
-
-
-
-
-
-    public function actionAddCart($id)
-    {
-        $session = Yii::$app->session;
-        $cart = $session->get('cart', []);
-        $cart[$id] = ($cart[$id] ?? 0) + 1;
-        $session->set('cart', $cart);
-        return $this->redirect(['site/card']);
-    }
-
-    public function actionAddWishlist($id)
-    {
-        $session = Yii::$app->session;
-        $wishlist = $session->get('wishlist', []);
-        if (!isset($wishlist[$id])) {
-            $wishlist[$id] = 1;
-        }
-        $session->set('wishlist', $wishlist);
-        Yii::$app->session->setFlash('success', "Mahsulot sevimlilarga qo'shildi!");
-        return $this->redirect(Yii::$app->request->referrer);
-    }
     public function actionWishlist($id = null)
     {
-        if ($id !== null) {
-            \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        if (Yii::$app->request->isAjax && $id !== null) {
+            Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
             if (Yii::$app->user->isGuest) {
                 return ['status' => 'error', 'message' => 'Avval tizimga kiring!'];
             }
 
             $userId = Yii::$app->user->id;
-            $exists = \common\models\Wishlist::find()
-                ->where(['user_id' => $userId, 'product_id' => $id])
-                ->exists();
+            $model = \common\models\Wishlist::findOne(['user_id' => $userId, 'product_id' => $id]);
 
-            if (!$exists) {
-                $model = new \common\models\Wishlist();
-                $model->user_id = $userId;
-                $model->product_id = $id;
-                $model->created_at = time();
-
-                if ($model->save()) {
-                    return ['status' => 'success', 'message' => 'Mahsulot saqlandi!'];
+            if ($model) {
+                $model->delete();
+                return ['status' => 'removed'];
+            } else {
+                $newWish = new \common\models\Wishlist();
+                $newWish->user_id = $userId;
+                $newWish->product_id = $id;
+                $newWish->created_at = time();
+                if ($newWish->save()) {
+                    return ['status' => 'added'];
                 }
             }
-            return ['status' => 'info', 'message' => 'Bu mahsulot allaqachon mavjud.'];
-        }
-
-        if (Yii::$app->user->isGuest) {
-            return $this->redirect(['site/login']);
         }
 
         $wishlistItems = \common\models\Wishlist::find()
             ->where(['user_id' => Yii::$app->user->id])
-            ->with('product')
-            ->all();
+            ->with('product')->all();
 
-        return $this->render('wishlist', [
-            'wishlistItems' => $wishlistItems,
-        ]);
+        return $this->render('wishlist', ['wishlistItems' => $wishlistItems]);
     }
+    public function actionBuyNow($id)
+    {
+        $session = Yii::$app->session;
+        $cart = $session->get('cart', []);
+
+        $cart[$id] = 1;
+
+        $session->set('cart', $cart);
+
+        return $this->redirect(['site/checkout']);
+    }
+
+
+    public function actionToggleCart()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $id = Yii::$app->request->post('id');
+        $session = Yii::$app->session;
+        $cart = $session->get('cart', []);
+
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
+            $status = 'removed';
+        } else {
+            $cart[$id] = 1;
+            $status = 'added';
+        }
+
+        $session->set('cart', $cart);
+
+        return [
+            'status' => $status,
+            'cartCount' => count($cart),
+        ];
+    }
+
+
+
+    public function actionToggleWishlist($id)
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        if (Yii::$app->user->isGuest) {
+            return ['status' => 'error', 'message' => 'Avval tizimga kiring!'];
+        }
+
+        $userId = Yii::$app->user->id;
+        $model = \common\models\Wishlist::findOne(['user_id' => $userId, 'product_id' => $id]);
+
+        if ($model) {
+            $model->delete();
+            return ['status' => 'removed', 'message' => "O'chirildi"];
+        } else {
+            $newWish = new \common\models\Wishlist();
+            $newWish->user_id = $userId;
+            $newWish->product_id = $id;
+            $newWish->created_at = time();
+            if ($newWish->save()) {
+                return ['status' => 'added', 'message' => 'Saqlandi!'];
+            }
+        }
+
+        return ['status' => 'error', 'message' => 'Xatolik yuz berdi'];
+    }
+
+    public function addToCart($productId)
+    {
+        $product = Product::find($productId);
+        $cartItem = Cart::where('product_id', $productId)->where('user_id', auth()->id())->first();
+
+        // 1. Bazada mahsulot bormi?
+        if ($product->stock <= 0) {
+            return "Kechirasiz, mahsulot tugagan.";
+        }
+
+        // 2. Agar savatda allaqachon bo'lsa va stock cheklangan bo'lsa
+        if ($cartItem && $product->stock <= 1) {
+            return "Ushbu mahsulotdan faqat 1 ta sotib olish mumkin.";
+        }
+
+        // Agar hammasi joyida bo'lsa, savatga qo'shish yoki sonini oshirish
+        // ... savatga qo'shish kodi ...
+    }
+
 
 
 

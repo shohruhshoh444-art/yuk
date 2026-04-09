@@ -76,24 +76,44 @@ class SeedController extends Controller
         $db->createCommand("SET FOREIGN_KEY_CHECKS = 0")->execute();
         $db->createCommand()->truncateTable('{{%product}}')->execute();
 
-        // FAQAT to'g'ri rasm linklarini ishlating (id/ raqami har xil bo'lsin)
         $items = [
-            ['title' => 'iPhone 15 Pro', 'slug' => 'iphone-15-pro', 'img' => 'https://picsum.photos'],
-            ['title' => 'MacBook Air M3', 'slug' => 'macbook-air-m3', 'img' => 'https://picsum.photos'],
-            ['title' => 'AirPods Pro 2', 'slug' => 'airpods-pro-2', 'img' => 'https://picsum.photos'],
-            ['title' => 'Apple Watch 9', 'slug' => 'apple-watch-9', 'img' => 'https://picsum.photos'],
+            ['title' => 'iPhone 15 Pro', 'slug' => 'iphone-15-pro'],
+            ['title' => 'MacBook Air M3', 'slug' => 'macbook-air-m3'],
+            ['title' => 'AirPods Pro 2', 'slug' => 'airpods-pro-2'],
+            ['title' => 'Apple Watch 9', 'slug' => 'apple-watch-9'],
+        ];
+
+        $availableImages = [
+            'img/product-5.jpg',
+            'img/product-4.jpg',
+            'img/product-6.jpg',
+            'img/product-4.jpg',
+            'img/product-5.jpg',
+            'img/product-6.jpg',
+            'img/product-7.jpg',
+            'img/product-8.jpg',
+            'img/product-9.jpg',
+            'img/product-10.jpg'
         ];
 
         foreach ($items as $item) {
+            $randomKeys = array_rand($availableImages, 3);
+            $productImages = [
+                $availableImages[$randomKeys[0]],
+                $availableImages[$randomKeys[1]],
+                $availableImages[$randomKeys[2]]
+            ];
+
             $db->createCommand()->insert('{{%product}}', [
                 'category_id'    => 1,
                 'title'          => $item['title'],
                 'slug'           => $item['slug'],
-                'description'    => 'Professional mahsulot tavsifi.',
-                'price'          => 1200,
-                'discount_price' => 1100,
-                'stock'          => 10,
-                'image'          => $item['img'], // BU YERDA GOOGLE LINKI BO'LMASLIGI KERAK!
+                'description'    => 'Professional mahsulot tavsifi. Bu yerda mahsulot haqida batafsil ma\'lumot keltirilgan.',
+                'price'          => rand(500, 1500),
+                'discount_price' => rand(400, 450),
+                'stock'          => rand(5, 20),
+
+                'image'          => implode(',', $productImages),
                 'status'         => 1,
                 'created_at'     => time(),
                 'updated_at'     => time(),
@@ -101,7 +121,7 @@ class SeedController extends Controller
         }
 
         $db->createCommand("SET FOREIGN_KEY_CHECKS = 1")->execute();
-        echo "Product: 4 ta mahsulot to'g'ri rasm linklari bilan yaratildi.\n";
+        echo "Product: 4 ta mahsulot (har biri min 3 tadan rasm bilan) yaratildi.\n";
     }
 
 
@@ -109,14 +129,47 @@ class SeedController extends Controller
     private function seedBlog()
     {
         Yii::$app->db->createCommand("DELETE FROM blog")->execute();
+        $fakeImage = 'img/category-5.jpg';
+        $now = time();
+        $startDate = date('Y-m-d');
+        $endDate = date('Y-m-d', strtotime('+1 month'));
+
         Yii::$app->db->createCommand()->batchInsert(
             '{{%blog}}',
-            ['title', 'content', 'status', 'created_at', 'updated_at'],
             [
-                ['Xush kelibsiz!', 'Bu bizning yangi do\'konimiz.', 1, time(), time()],
-                ['Aksiya!', 'Barcha iPhone-lar uchun 10% chegirma.', 1, time(), time()],
+                'title',
+                'content',
+                'image',
+                'status',
+                'start_date',
+                'end_date',
+                'created_at',
+                'updated_at'
+            ],
+            [
+                [
+                    'Xush kelibsiz!',
+                    'Bu bizning yangi do\'konimiz.',
+                    $fakeImage,
+                    1,
+                    $startDate,
+                    $endDate,
+                    $now,
+                    $now
+                ],
+                [
+                    'Aksiya!',
+                    'Barcha iPhone-lar uchun 10% chegirma.',
+                    $fakeImage,
+                    1,
+                    $startDate,
+                    $endDate,
+                    $now,
+                    $now
+                ],
             ]
         )->execute();
-        echo "Blog: 2 ta maqola yaratildi.\n";
+
+        echo "Blog: 2 ta FAOL aksiya yaratildi.\n";
     }
 }

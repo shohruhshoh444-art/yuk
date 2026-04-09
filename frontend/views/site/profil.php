@@ -222,8 +222,8 @@ $this->title = 'Mening profilim';
                                 <small class="text-muted"><?= date('d.m.Y H:i', $order->created_at) ?></small>
                             </div>
                             <div class="text-right">
-                                <div class="badge badge-success px-3 py-2 mb-1">Bajarildi</div><br>
-                                <strong class="text-dark">$<?= number_format($order->total_price, 0) ?></strong>
+                                <div class="badge badge-success px-3 py-2 mb-1"><?php echo $order->status === 'completed' ? 'Bajarildi' : 'Kutilmoqda'; ?></div><br>
+                                <strong class="text-dark"><?= number_format($order->total_price, 0) ?>uzs</strong>
                             </div>
                         </div>
                     <?php endforeach; ?>

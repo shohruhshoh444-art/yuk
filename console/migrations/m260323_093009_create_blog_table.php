@@ -21,8 +21,8 @@ class m260323_093009_create_blog_table extends Migration
             'image' => $this->string(),
             'status' => $this->integer()->defaultValue(1),
             'category_id' => $this->integer(),
-            'created_at' => $this->integer(),
-            'updated_at' => $this->integer(),
+            'created_at' => $this->nullable(),
+            'updated_at' => $this->nullable(),
         ]);
 
         $this->createIndex('idx-blog-slug', '{{%blog}}', 'slug');

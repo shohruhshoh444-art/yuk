@@ -23,8 +23,8 @@ class m260323_092936_create_product_table extends Migration
             'stock' => $this->integer()->defaultValue(0),
             'image' => $this->string(),
             'status' => $this->smallInteger()->defaultValue(1),
-            'created_at' => $this->integer()->notNull(),
-            'updated_at' => $this->integer()->notNull(),
+            'created_at' => $this->nullable(),
+            'updated_at' => $this->nullable(),
         ]);
 
         $this->addForeignKey('fk-product-category', '{{%product}}', 'category_id', '{{%category}}', 'id', 'CASCADE');

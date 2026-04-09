@@ -12,7 +12,7 @@ use yii\captcha\Captcha;
 <div class="breadcrumb-wrap">
     <div class="container-fluid">
         <ul class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/index']) ?>">Home</a></li>
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/about']) ?>">Products</a></li>
             <li class="breadcrumb-item active">Contact</li>
         </ul>

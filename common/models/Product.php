@@ -28,7 +28,7 @@ use yii\behaviors\TimestampBehavior;
 class Product extends \yii\db\ActiveRecord
 {
 
-    public $imageFile;
+    public $imageFiles;
 
     public function behaviors()
     {
@@ -51,34 +51,23 @@ class Product extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            // Default qiymatlar
             [['discount_price', 'description', 'specifications', 'created_at', 'updated_at'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 1],
-            [['stock'], 'default', 'value' => 0], // Stock uchun default 0
-
-            // Majburiy maydonlar
+            [['stock'], 'default', 'value' => 0],
             [['category_id', 'title', 'price', 'stock'], 'required'], // Stock majburiy qilindi
-
-            // Integer (Butun son) bo'lishi kerak bo'lganlar
             [['category_id', 'status', 'created_at', 'updated_at', 'stock'], 'integer'],
-
-            // Narxlar (O'nlik son bo'lishi mumkin)
             [['price', 'discount_price'], 'number'],
-
             [['description'], 'string'],
-
-            // Rasm yuklash qoidalari
-            [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg', 'maxSize' => 1024 * 1024 * 2],
-
             [['specifications'], 'safe'],
             [['title'], 'string', 'max' => 255],
-
-            // Tashqi kalit tekshiruvi
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => Category::class, 'targetAttribute' => ['category_id' => 'id']],
+            [['imageFiles'], 'file', 
+                'extensions' => 'png, jpg, jpeg', 
+                'maxFiles' => 8,               
+                'skipOnEmpty' => true,
+            ],
         ];
     }
-
-
     /**
      * {@inheritdoc}
      */
@@ -155,5 +144,15 @@ class Product extends \yii\db\ActiveRecord
     public function getProductRelations0()
     {
         return $this->hasMany(ProductRelation::class, ['related_id' => 'id']);
+    }
+    public function isFavorite()
+    {
+        if (Yii::$app->user->isGuest) {
+            return false;
+        }
+
+        return \common\models\Wishlist::find()
+            ->where(['product_id' => $this->id, 'user_id' => Yii::$app->user->id])
+            ->exists();
     }
 }

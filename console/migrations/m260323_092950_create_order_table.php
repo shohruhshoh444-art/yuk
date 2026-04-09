@@ -22,7 +22,7 @@ class m260323_092950_create_order_table extends Migration
             'payment_method' => $this->string(),
             'total_price' => $this->decimal(15, 2),
             'status' => $this->integer()->defaultValue(0),
-            'created_at' => $this->integer(),
+            'created_at' => $this->nullable(),
         ]);
     }
 

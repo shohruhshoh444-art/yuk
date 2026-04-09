@@ -1,4 +1,5 @@
 <?php
+
 use yii\widgets\ActiveForm;
 use yii\helpers\Html;
 
@@ -6,23 +7,32 @@ use yii\helpers\Html;
 $form = ActiveForm::begin(['id' => 'checkout-form']); ?>
 
 <div class="row">
-    <!-- CHAP TOMON: Billing Address -->
     <div class="col-lg-8">
         <div class="checkout-inner shadow-sm p-4" style="background: #fff; border-radius: 12px;">
             <h2 class="mb-4">Billing Address</h2>
             <div class="row">
                 <div class="col-md-6">
-                    <?= $form->field($orderModel, 'full_name')->textInput(['placeholder' => 'Ism-sharifingiz'])->label('Full Name') ?>
+                    <?= $form->field($orderModel, 'full_name')->textInput([
+                        'placeholder' => 'Ism-sharifingiz',
+                        'value' => $orderModel->full_name ?: (!Yii::$app->user->isGuest ? Yii::$app->user->identity->username : ''),
+                        'oninput' => "this.value = this.value.replace(/[0-9]/g, '');"
+                    ])->label('Full Name') ?>
                 </div>
+
                 <div class="col-md-6">
-                    <?= $form->field($orderModel, 'phone')->textInput(['placeholder' => '+998...'])->label('Phone') ?>
+                    <?= $form->field($orderModel, 'phone')->textInput([
+                        'type' => 'tel',
+                        'value' => '+998',
+                        'maxlength' => 13,
+                        'oninput' => "this.value = this.value.replace(/[^0-9+]/g, '');",
+                    ])->label('Phone') ?>
                 </div>
+
                 <div class="col-md-12">
                     <?= $form->field($orderModel, 'address')->textarea(['rows' => 3, 'placeholder' => 'Yetkazib berish manzili'])->label('Address') ?>
                 </div>
             </div>
 
-            <!-- TO'LOV USULLARI SHU YERDA BO'LISHI SHART -->
             <div class="checkout-payment mt-4 pt-4 border-top">
                 <h2 class="mb-3">To'lov usullari</h2>
                 <?= $form->field($orderModel, 'payment_method')->radioList([
@@ -47,25 +57,30 @@ $form = ActiveForm::begin(['id' => 'checkout-form']); ?>
         </div>
     </div>
 
-    <!-- O'NG TOMON: Buyurtma xulosasi va Tugma -->
     <div class="col-lg-4">
         <div class="checkout-summary shadow-sm p-4" style="background: #fff; border-radius: 12px;">
             <h1>Cart Total</h1>
-            <?php foreach ($products as $item): ?>
-                <p class="d-flex justify-content-between">
-                    <?= Html::encode($item['model']->title) ?> (x<?= $item['qty'] ?>)
-                    <span>$<?= number_format($item['model']->price * $item['qty'], 0) ?></span>
-                </p>
-            <?php endforeach; ?>
+            <?php
+            $canPlaceOrder = true;
+            foreach ($products as $item) {
+                if ($item['model']->stock <= 0 || $item['qty'] > $item['model']->stock) {
+                    $canPlaceOrder = false;
+                    break;
+                }
+            }
+            ?>
+
+
+
             <hr>
             <p class="sub-total d-flex justify-content-between">Sub Total<span>$<?= number_format($totalSum, 0) ?></span></p>
             <p class="ship-cost d-flex justify-content-between">Shipping Cost<span>$1</span></p>
             <h2 class="d-flex justify-content-between mt-3" style="color: #ff7466;">Grand Total<span>$<?= number_format($totalSum + 1, 0) ?></span></h2>
-            
+
             <div class="checkout-btn mt-4">
                 <?= Html::submitButton('Buyurtma berish', [
                     'class' => 'btn btn-lg btn-danger btn-block',
-                    'style' => 'background: #ff7466; border: none; border-radius: 12px; font-weight: bold; padding: 15px;'
+                    'style' => 'background: #890b00; border: none; border-radius: 12px; font-weight: bold; padding: 15px;'
                 ]) ?>
             </div>
         </div>
@@ -75,8 +90,7 @@ $form = ActiveForm::begin(['id' => 'checkout-form']); ?>
 <?php ActiveForm::end(); ?>
 
 <style>
-    /* Radio tugma tanlanganda rangni o'zgartirish */
-    .custom-control-input:checked ~ .custom-control-label::before {
+    .custom-control-input:checked~.custom-control-label::before {
         background-color: #ff7466;
         border-color: #ff7466;
     }

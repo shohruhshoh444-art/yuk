@@ -156,68 +156,75 @@ class SiteController extends Controller
 
 
 
-    public function actionProduct($id = null, $del = null)
-    {
-        if ($del) {
-            $modelDel = \common\models\Product::findOne($del);
-            if ($modelDel) {
-                if ($modelDel->image && file_exists(Yii::getAlias('@frontend/web/') . $modelDel->image)) {
-                    unlink(Yii::getAlias('@frontend/web/') . $modelDel->image);
+   public function actionProduct($id = null, $del = null)
+{
+    if ($del) {
+        $modelDel = \common\models\Product::findOne($del);
+        if ($modelDel) {
+            $images = explode(',', $modelDel->image);
+            foreach ($images as $img) {
+                $filePath = Yii::getAlias('@frontend/web/') . trim($img);
+                if (!empty($img) && file_exists($filePath)) {
+                    unlink($filePath);
                 }
-                $modelDel->delete();
             }
-            return $this->redirect(['product']);
+            $modelDel->delete();
         }
-
-        $newProd = $id ? \common\models\Product::findOne($id) : new \common\models\Product();
-
-        if ($newProd->load(Yii::$app->request->post())) {
-
-            if ($newProd->isNewRecord) {
-                $newProd->created_at = time();
-            }
-            $newProd->updated_at = time();
-
-            $newProd->slug = \yii\helpers\Inflector::slug($newProd->title);
-            $newProd->imageFile = \yii\web\UploadedFile::getInstance($newProd, 'imageFile');
-
-            if ($newProd->validate()) {
-                if ($newProd->imageFile) {
-                    $path = 'uploads/products/';
-                    $fullPath = Yii::getAlias('@frontend/web/') . $path;
-
-                    if (!is_dir($fullPath)) {
-                        \yii\helpers\FileHelper::createDirectory($fullPath);
-                    }
-
-                    $fileName = time() . '_' . $newProd->imageFile->baseName . '.' . $newProd->imageFile->extension;
-
-                    if ($newProd->imageFile->saveAs($fullPath . $fileName)) {
-                        $newProd->image = $path . $fileName;
-                    }
-                }
-
-
-                if ($newProd->save(false)) {
-                    Yii::$app->session->setFlash('success', "Mahsulot muvaffaqiyatli saqlandi!");
-                    return $this->redirect(['product']);
-                }
-            } else {
-                Yii::$app->session->setFlash('error', "Xatolik: " . json_encode($newProd->getErrors(), JSON_UNESCAPED_UNICODE));
-            }
-        }
-
-        return $this->render('product', [
-            'products' => \common\models\Product::find()->orderBy(['id' => SORT_DESC])->all(),
-            'categories' => \common\models\Category::find()->all(),
-            'newProd' => $newProd,
-            'catCount' => \common\models\Category::find()->count(),
-            'prodCount' => \common\models\Product::find()->count(),
-            'orderCount' => \common\models\Order::find()->count(),
-            'userCount' => \common\models\User::find()->count(),
-        ]);
+        return $this->redirect(['product']);
     }
 
+    $newProd = $id ? \common\models\Product::findOne($id) : new \common\models\Product();
+
+    if ($newProd->load(Yii::$app->request->post())) {
+
+        if ($newProd->isNewRecord) {
+            $newProd->created_at = time();
+        }
+        $newProd->updated_at = time();
+        $newProd->slug = \yii\helpers\Inflector::slug($newProd->title);
+        $newProd->imageFiles = \yii\web\UploadedFile::getInstances($newProd, 'imageFiles');
+        if ($newProd->isNewRecord && count($newProd->imageFiles) < 3) {
+            Yii::$app->session->setFlash('error', "Kamida 3 ta rasm yuklashingiz shart!");
+        } 
+        elseif (count($newProd->imageFiles) > 8) {
+            Yii::$app->session->setFlash('error', "Maksimal 8 ta rasm yuklash mumkin!");
+        }
+        elseif ($newProd->validate()) {
+            if ($newProd->imageFiles) {
+                $path = 'uploads/products/';
+                $fullPath = Yii::getAlias('@frontend/web/') . $path;
+                if (!is_dir($fullPath)) {
+                    \yii\helpers\FileHelper::createDirectory($fullPath);
+                }
+                $savedImages = [];
+                foreach ($newProd->imageFiles as $file) {
+                    $fileName = time() . '_' . uniqid() . '.' . $file->extension;
+                    if ($file->saveAs($fullPath . $fileName)) {
+                        $savedImages[] = $path . $fileName;
+                    }
+                }               
+                if (!empty($savedImages)) {
+                    $newProd->image = implode(',', $savedImages);
+                }
+            }
+            if ($newProd->save(false)) {
+                Yii::$app->session->setFlash('success', "Mahsulot muvaffaqiyatli saqlandi!");
+                return $this->redirect(['product']);
+            }
+        } else {
+            Yii::$app->session->setFlash('error', "Xatolik: " . json_encode($newProd->getErrors(), JSON_UNESCAPED_UNICODE));
+        }
+    }
+    return $this->render('product', [
+        'products' => \common\models\Product::find()->orderBy(['id' => SORT_DESC])->all(),
+        'categories' => \common\models\Category::find()->all(),
+        'newProd' => $newProd,
+        'catCount' => \common\models\Category::find()->count(),
+        'prodCount' => \common\models\Product::find()->count(),
+        'orderCount' => \common\models\Order::find()->count(),
+        'userCount' => \common\models\User::find()->count(),
+    ]);
+}
 
 
     public function actionOrder($del = null)

@@ -8,7 +8,7 @@ use yii\helpers\Html;
 <div class="breadcrumb-wrap">
     <div class="container-fluid">
         <ul class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/index']) ?>">Home</a></li>
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/about']) ?>">Products</a></li>
             <li class="breadcrumb-item active">Cart</li>
             <li class="breadcrumb-item"><a href="<?= \yii\helpers\Url::to(['site/checkout']) ?>">Checkout</a></li>
@@ -46,33 +46,58 @@ use yii\helpers\Html;
                                     <?php foreach ($products as $item): ?>
                                         <tr>
                                             <td>
-                                                <div class="img" style="display: flex; align-items: center; gap: 10px;">
+                                                <div class="img" style="display: flex; align-items: center; gap: 12px;">
                                                     <?php
                                                     $productModel = $item['model'];
-                                                    $imageName = $productModel->image;
+                                                    $rawImage = $productModel->image;
+                                                    $noImage = Yii::getAlias('@web/img/no-image.png');
 
-                                                    if ($imageName && file_exists(Yii::getAlias('@webroot/') . $imageName)) {
-                                                        $imagePath = Yii::getAlias('@web/') . $imageName;
+                                                    $images = !empty($rawImage) ? explode(',', $rawImage) : [];
+                                                    $firstImg = !empty($images) ? trim($images[0]) : '';
+
+                                                    if ($firstImg) {
+                                                        if (strpos($firstImg, 'http') === 0) {
+                                                            $imagePath = $firstImg;
+                                                        } else {
+                                                            $imagePath = Yii::getAlias('@web/') . $firstImg;
+                                                        }
                                                     } else {
-                                                        $imagePath = Yii::getAlias('@web/img/product-5.jpg');
+                                                        $imagePath = $noImage;
                                                     }
                                                     ?>
 
-                                                    <img src="<?= $imagePath ?>" alt="Product" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #ddd;">
+                                                    <div style="width: 50px; height: 50px; overflow: hidden; border: 1px solid #eee; border-radius: 6px; flex-shrink: 0;">
+                                                        <img src="<?= $imagePath ?>"
+                                                            alt="<?= \yii\helpers\Html::encode($productModel->title) ?>"
+                                                            style="width: 100%; height: 100%; object-fit: contain;"
+                                                            onerror="this.src='<?= $noImage ?>'">
+                                                    </div>
 
-                                                    <span><?= $productModel->title ?></span>
+                                                    <span style="font-weight: 500; color: #333;">
+                                                        <?= \yii\helpers\Html::encode($productModel->title) ?>
+                                                    </span>
                                                 </div>
+
                                             </td>
                                             <td>$<?= number_format($item['price'], 0) ?></td>
                                             <td>
                                                 <div class="qty">
+                                                    <!-- Minus tugmasi -->
                                                     <button class="btn-minus cart-update" data-id="<?= $item['model']->id ?>" data-action="minus">
                                                         <i class="fa fa-minus"></i>
                                                     </button>
+
                                                     <input type="text" value="<?= $item['qty'] ?>" class="qty-input" readonly>
-                                                    <button class="btn-plus cart-update" data-id="<?= $item['model']->id ?>" data-action="plus">
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
+
+                                                    <?php if ($item['qty'] < $item['model']->stock): ?>
+                                                        <button class="btn-plus cart-update" data-id="<?= $item['model']->id ?>" data-action="plus">
+                                                            <i class="fa fa-plus"></i>
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button class="btn btn-sm btn-light" style="cursor: not-allowed; opacity: 0.5;" title="Omborda boshqa qolmagan">
+                                                            <i class="fa fa-ban"></i>
+                                                        </button>
+                                                    <?php endif; ?>
                                                 </div>
                                             </td>
                                             <td class="row-total" data-price="<?= $item['price'] ?>">
@@ -104,10 +129,7 @@ use yii\helpers\Html;
                 <div class="cart-page-inner">
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="coupon">
-                                <input type="text" placeholder="Coupon Code">
-                                <button>Apply Code</button>
-                            </div>
+
                         </div>
                         <div class="col-md-12">
                             <div class="cart-summary shadow-sm border p-3 bg-white">
