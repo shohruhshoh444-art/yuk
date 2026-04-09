@@ -5,6 +5,15 @@ use yii\helpers\Url;
 
 $this->title = 'Shop';
 ?>
+<?php
+$limit = 4; 
+
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+
+$offset = ($page - 1) * $limit;
+?>
+
 
 <div class="product-view py-4">
     <div class="container-fluid">
@@ -137,8 +146,52 @@ $this->title = 'Shop';
         </div>
     </div>
 </div>
+<?php
+use yii\bootstrap5\LinkPager;
+
+echo LinkPager::widget([
+    'pagination' => $pagination,
+    'options' => ['class' => 'pagination justify-content-center mt-4'],
+]);
+?>
+
+
 
 <style>
+    .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 30px;
+}
+
+.pagination button, .pagination a {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pagination button:hover {
+    background-color: #f8f9fa;
+    border-color: #c0392b; /* Цвет вашей темы */
+}
+
+.pagination button.active {
+    background-color: #c0392b; /* Красный цвет как на кнопках "BUY NOW" */
+    color: white;
+    border-color: #c0392b;
+}
+
+.pagination button:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
     .transition-hover {
         transition: transform 0.3s ease;
     }

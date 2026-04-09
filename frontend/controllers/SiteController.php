@@ -299,12 +299,25 @@ class SiteController extends Controller
             $categories = \common\models\Category::find()->where(['parent_id' => null])->all();
         }
 
+        $count = $query->count(); 
+        $pagination = new \yii\data\Pagination([
+            'totalCount' => $count,
+            'pageSize' => 4, 
+        ]);
+
+        $products = $query->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+        // ------------------------
+
         return $this->render('about', [
-            'products' => $query->all(),
+            'products' => $products,
             'categories' => $categories,
             'active_cat' => $active_cat,
+            'pagination' => $pagination, 
         ]);
     }
+
 
 
 
