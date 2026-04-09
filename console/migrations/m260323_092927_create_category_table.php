@@ -18,8 +18,8 @@ class m260323_092927_create_category_table extends Migration
             'parent_id' => $this->integer()->null(),
             'slug' => $this->string()->unique()->notNull(),
             'status' => $this->smallInteger()->defaultValue(1),
-            'created_at' => $this->nullable(),
-            'updated_at' => $this->nullable(),
+            'created_at' => $this->integer()->null(),
+            'updated_at' => $this->integer()->null(),
         ]);
         $this->addForeignKey('fk-category-parent', '{{%category}}', 'parent_id', '{{%category}}', 'id', 'CASCADE');
     }

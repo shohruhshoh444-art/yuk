@@ -1,0 +1,181 @@
+<?php
+use yii\helpers\Html;
+use yii\helpers\Url;
+
+$this->title = 'Shop';
+?>
+
+<div class="product-view py-4">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 1. SIDEBAR (Chap taraf) -->
+            <div class="col-md-3 mb-4" id="sidebar-container">
+                <div class="sidebar shadow-sm p-4 rounded" style="background: #1e1e1e; color: #ccc; position: sticky; top: 20px;">
+                    <h4 class="font-weight-bold border-bottom pb-3 mb-3 text-white">
+                        <i class="fa fa-th-large mr-2 text-danger"></i> SHOP
+                    </h4>
+                    <ul class="list-unstyled">
+                        <?php if ($active_cat): ?>
+                            <li class="mb-3">
+                                <a href="<?= Url::to(['site/about', 'category_id' => $active_cat->parent_id]) ?>" 
+                                   class="category-filter text-info font-weight-bold text-decoration-none">
+                                    <i class="fa fa-arrow-left mr-2"></i> Orqaga
+                                </a>
+                            </li>
+                        <?php endif; ?>
+
+                        <?php foreach ($categories as $cat): ?>
+                            <li class="mb-2 border-bottom border-secondary pb-2">
+                                <a href="<?= Url::to(['site/about', 'category_id' => $cat->id]) ?>" 
+                                   class="category-filter text-light text-decoration-none d-flex justify-content-between align-items-center">
+                                    <span><i class="fa fa-angle-right mr-2 text-secondary"></i> <?= Html::encode($cat->name_uz) ?></span>
+                                    <i class="fa fa-chevron-right small opacity-50"></i>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 2. MAHSULOTLAR (O'ng taraf) -->
+            <div class="col-md-9" id="product-container">
+                <div class="row">
+                    <?php if (!empty($products)): ?>
+                        <?php foreach ($products as $product): ?>
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="product-item shadow-sm border-0 bg-white rounded overflow-hidden h-100 transition-hover">
+                                    <!-- Sarlavha -->
+                                    <div class="product-title p-2 text-center" style="background: #ff7466;">
+                                        <a href="<?= Url::to(['site/view', 'id' => $product->id]) ?>" class="text-white font-weight-bold text-truncate d-block" style="text-decoration: none;">
+                                            <?= Html::encode($product->title) ?>
+                                        </a>
+                                    </div>
+
+                                    <!-- Rasm -->
+                                  <div class="product-image p-3 d-flex align-items-center justify-content-center" style="height: 220px; background: #fff;">
+    <?php
+    // Bazadagi vergul bilan ajratilgan matnni massivga aylantiramiz
+    $images = !empty($product->image) ? explode(',', $product->image) : [];
+    
+    // Birinchi rasmni olamiz, agar bo'sh bo'lsa no-image rasmini qo'yamiz
+    $firstImg = !empty($images[0]) ? trim($images[0]) : 'img/no-image.png';
+    
+    // Agar rasm http bilan boshlanmasa, @web aliasini qo'shib yo'l hosil qilamiz
+    $imagePath = (strpos($firstImg, 'http') === 0) ? $firstImg : Url::to('@web/' . $firstImg);
+    ?>
+    
+    <img src="<?= $imagePath ?>" 
+         style="max-height: 100%; max-width: 100%; object-fit: contain;" 
+         alt="<?= Html::encode($product->title) ?>"
+         onerror="this.src='<?= Url::to('@web/img/no-image.png') ?>'">
+</div>
+
+
+                                    <!-- Narx va Buy Now -->
+                                    <div class="product-price p-3 bg-dark d-flex justify-content-between align-items-center">
+                                        <div class="text-white">
+                                            <span class="d-block small opacity-50 text-uppercase" style="font-size: 10px;">Narxi:</span>
+                                            <span class="font-weight-bold" style="font-size: 1.1rem;"><?= number_format($product->price, 0, '.', ' ') ?> UZS</span>
+                                        </div>
+                                        <a href="<?= Url::to(['site/buy-now', 'id' => $product->id]) ?>" 
+                                           class="btn btn-sm btn-danger px-3 font-weight-bold" 
+                                           style="background: #6d0b02; border: none; border-radius: 4px;">
+                                            BUY NOW
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="col-12 text-center py-5">
+                            <i class="fa fa-search text-muted mb-3" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted font-italic">Ushbu kategoriyada mahsulotlar topilmadi.</h4>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .transition-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important; }
+    .category-filter:hover { color: #ff7466 !important; padding-left: 5px; transition: 0.3s; }
+</style>
+
+<?php
+$js = <<<JS
+// REFRESHSIZ KATEGORIYA FILTRI
+$(document).on('click', '.category-filter', function(e) {
+    e.preventDefault();
+    let url = $(this).attr('href');
+
+    $.get(url, function(data) {
+        let newContent = $(data);
+        $('#product-container').html(newContent.find('#product-container').html());
+        $('#sidebar-container').html(newContent.find('#sidebar-container').html());
+        window.history.pushState(null, null, url);
+    });
+});
+JS;
+$this->registerJs($js);
+?>
+
+<?php
+$aboutUrl = \yii\helpers\Url::to(['site/about']);
+$wishlistUrl = \yii\helpers\Url::to(['site/wishlist']);
+$cartUrl = \yii\helpers\Url::to(['site/toggle-cart']);
+$csrfParam = Yii::$app->request->csrfParam;
+$csrfToken = Yii::$app->request->csrfToken;
+
+$js = <<<JS
+// 1. KATEGORIYA FILTRI (Hamma bosishlarni ushlash uchun document'ga bog'laymiz)
+$(document).on('click', '.category-filter', function(e) {
+    e.preventDefault();
+    let catId = $(this).data('id');
+
+    $.ajax({
+        url: '{$aboutUrl}',
+        type: 'GET',
+        data: { category_id: catId },
+        success: function(res) {
+            // Agar javob JSON bo'lsa (Controllerdagi mantiqqa ko'ra)
+            if (res.products) {
+                $('#product-container').html(res.products);
+            }
+            if (res.sidebar) {
+                $('#sidebar-container').html(res.sidebar);
+            }
+        },
+        error: function(xhr) {
+            console.error('Kategoriya yuklashda xato:', xhr.responseText);
+        }
+    });
+});
+
+// 2. SEVIMLILAR
+$(document).on('click', '.wishlist-btn', function(e) {
+    e.preventDefault();
+    let productId = $(this).data('id');
+    let icon = $('.wishlist-icon-' + productId);
+    $.get('{$wishlistUrl}', { id: productId }, function(res) {
+        if (res.status === 'added') icon.css('color', '#ff0000');
+        else if (res.status === 'removed') icon.css('color', '#6c757d');
+    });
+});
+
+// 3. SAVAT (CART)
+$(document).on('click', '.toggle-cart', function(e) {
+    e.preventDefault();
+    let productId = $(this).data('id');
+    let icon = $('.cart-icon-' + productId);
+    $.post('{$cartUrl}', { id: productId, '{$csrfParam}': '{$csrfToken}' }, function(res) {
+        if (res.status === 'added') icon.css('color', '#000dff');
+        else icon.css('color', '#6c757d');
+        if (res.cartCount !== undefined) $('.cart-count').text(res.cartCount);
+    });
+});
+JS;
+$this->registerJs($js);
+?>

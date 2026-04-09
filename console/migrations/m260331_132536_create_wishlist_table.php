@@ -16,7 +16,7 @@ class m260331_132536_create_wishlist_table extends Migration
             'id' => $this->primaryKey(),
             'user_id' => $this->integer()->notNull(),
             'product_id' => $this->integer()->notNull(),
-            'created_at' => $this->nullable(),
+            'created_at' => $this->integer()->null(),
         ]);
 
         $this->createIndex('idx-wishlist-user_id', '{{%wishlist}}', 'user_id');
